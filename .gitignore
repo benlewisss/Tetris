@@ -1,3 +1,7 @@
+.vs
+/out
+/build
+/enc_temp_folder
 CMakeLists.txt.user
 CMakeCache.txt
 CMakeFiles
