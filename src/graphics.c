@@ -9,9 +9,9 @@
 bool draw_arena(SDL_Renderer* renderer, SDL_Color color, uint8_t arena[ARENA_WIDTH][ARENA_HEIGHT])
 {
     // Draw grid
-    for (int i = 0; i < ARENA_WIDTH; i++)
+    for (int j = 0; j < ARENA_HEIGHT; j++)
     {
-        for (int j = 0; j < ARENA_HEIGHT; j++)
+        for (int i = 0; i < ARENA_WIDTH; i++)
         {
             SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
             SDL_FRect rect = { (float)i * BLOCK_SIZE, (float)j * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE };
@@ -21,8 +21,8 @@ bool draw_arena(SDL_Renderer* renderer, SDL_Color color, uint8_t arena[ARENA_WID
             if (arena[i][j])
             {
                 //TODO Store colour data in the arena (0-7 representing colours) and grab that here
-                const SDL_Color orange = { 255, 0, 255, 255 };
-                draw_block(renderer, orange, i, j);
+                const SDL_Color grey = { 50, 50, 50, 255 };
+                draw_block(renderer, grey, i, j);
             }
         }
     }
