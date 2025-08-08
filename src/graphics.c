@@ -6,7 +6,7 @@
 #include "../include/util.h"
 #include "../include/tetromino.h"
 
-bool draw_arena(SDL_Renderer* renderer, SDL_Color color, uint8_t arena[ARENA_WIDTH][ARENA_HEIGHT])
+bool draw_arena(SDL_Renderer* renderer, SDL_Color color, const int arena[ARENA_WIDTH][ARENA_HEIGHT])
 {
     // Draw grid
     for (int j = 0; j < ARENA_HEIGHT; j++)
@@ -30,7 +30,7 @@ bool draw_arena(SDL_Renderer* renderer, SDL_Color color, uint8_t arena[ARENA_WID
     return true;
 }
 
-bool draw_block(SDL_Renderer* renderer, SDL_Color color, uint8_t x, uint8_t y)
+bool draw_block(SDL_Renderer* renderer, SDL_Color color, int x, int y)
 {
     SDL_FRect rect = { (float)x * BLOCK_SIZE, (float)y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE };
 
@@ -40,7 +40,7 @@ bool draw_block(SDL_Renderer* renderer, SDL_Color color, uint8_t x, uint8_t y)
     return true;
 }
 
-bool draw_tetromino(SDL_Renderer* renderer, TetrominoShape tetromino, uint8_t x, uint8_t y)
+bool draw_tetromino(SDL_Renderer* renderer, TetrominoShape tetromino, int x, int y)
 {
     // Iterate over the coordinate pairs of each block in the tetromino
     for (int i = 0; i < TETROMINO_SIZE * 2; i += 2)

@@ -15,7 +15,7 @@ enum {
 typedef struct TetrominoShape
 {
     SDL_Color color;
-    uint8_t offsets[4][TETROMINO_SIZE * 2]; // 4 Orientations in 2D Space
+    int offsets[4][TETROMINO_SIZE * 2]; // 4 Orientations in 2D Space
 } TetrominoShape;
 
 /**
@@ -23,9 +23,9 @@ typedef struct TetrominoShape
  */
 typedef struct DroppingTetromino
 {
-    uint8_t x;
-    uint8_t y;
-    int16_t rotation; // It doesn't seem possible to rotate a shape 16000 times before it hits the floor TODO If you put a limit to rotations/sec
+    int x;
+    int y;
+    int rotation; // It doesn't seem possible to rotate a shape 16000 times before it hits the floor TODO If you put a limit to rotations/sec
     TetrominoShape shape;
     bool terminate;
 } DroppingTetromino;
