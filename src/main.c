@@ -33,9 +33,9 @@ static DroppingTetromino g_dropping_tetromino;
 
 bool game_iteration(SDL_Renderer* renderer, DroppingTetromino* dropping_tetromino, uint8_t arena[ARENA_WIDTH][ARENA_HEIGHT]);
 
-bool is_dropping_tetromino_move_possible(const DroppingTetromino* dropping_tetromino, const uint8_t arena[ARENA_WIDTH][ARENA_HEIGHT], const uint8_t x, const uint8_t y);
+bool check_dropping_tetromino_move_possible(const DroppingTetromino* dropping_tetromino, const uint8_t arena[ARENA_WIDTH][ARENA_HEIGHT], const uint8_t x, const uint8_t y);
 
-bool will_dropping_tetromino_collide(const DroppingTetromino* dropping_tetromino, const uint8_t arena[ARENA_WIDTH][ARENA_HEIGHT], const uint8_t x, const uint8_t y);
+bool check_dropping_tetromino_collision(const DroppingTetromino* dropping_tetromino, const uint8_t arena[ARENA_WIDTH][ARENA_HEIGHT], const uint8_t x, const uint8_t y);
 
 void reset_dropping_tetromino(DroppingTetromino* tetromino);
 
@@ -105,10 +105,10 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
         switch (event->key.key)
         {
         case SDLK_RIGHT:
-            if (is_dropping_tetromino_move_possible(&g_dropping_tetromino, g_arena, g_dropping_tetromino.x + 1, g_dropping_tetromino.y)) g_dropping_tetromino.x++;
+            if (check_dropping_tetromino_move_possible(&g_dropping_tetromino, g_arena, g_dropping_tetromino.x + 1, g_dropping_tetromino.y)) g_dropping_tetromino.x++;
             break;
         case SDLK_LEFT:
-            if (is_dropping_tetromino_move_possible(&g_dropping_tetromino, g_arena, g_dropping_tetromino.x - 1, g_dropping_tetromino.y)) g_dropping_tetromino.x--;
+            if (check_dropping_tetromino_move_possible(&g_dropping_tetromino, g_arena, g_dropping_tetromino.x - 1, g_dropping_tetromino.y)) g_dropping_tetromino.x--;
             break;
         default:
             break;
@@ -172,71 +172,88 @@ void SDL_AppQuit(void* appstate, SDL_AppResult result)
 bool game_iteration(SDL_Renderer* renderer, DroppingTetromino* dropping_tetromino, uint8_t arena[ARENA_WIDTH][ARENA_HEIGHT])
 {
     const SDL_Color grey = { 32, 32, 32, 255 };
-
     draw_arena(renderer, grey, arena);
 
-    // If the dropping tetromino in the previous iteration is marked for termination, that means we must replace it
-    // with a new dropping tetromino, essentially "spawning" a new one
-    if (dropping_tetromino->terminate == true) reset_dropping_tetromino(dropping_tetromino);
-
-    // Draw Tetromino
+    // Draw Dropping Tetromino
     draw_tetromino(renderer, dropping_tetromino->shape, dropping_tetromino->x, dropping_tetromino->y);
 
-
-    if (will_dropping_tetromino_collide(dropping_tetromino, arena, dropping_tetromino->x, dropping_tetromino->y + 1) == true)
-    {
-        // Update the arena with the location of the tetromino where it has collided
-        for (int i = 0; i <= (TETROMINO_SIZE - 1) * 2; i += 2)
-        {
-            uint8_t offset_x = dropping_tetromino->x + dropping_tetromino->shape.offsets[i];
-            uint8_t offset_y = dropping_tetromino->y + dropping_tetromino->shape.offsets[i + 1];
-
-            arena[offset_x][offset_y] = 1; //TODO This can assign an ENUM, 0-7, of the index in some array somewhere corresponding to an RGB value
-        }
-        dropping_tetromino->terminate = true;
-        return true;
-    }
-
-    // Every n ticks, drop tetromino
+    // Every n ticks, drop tetromino 
     static Uint64 oldTick = 0;
-    int speed = 500;
+    int speed = 250;
     if (SDL_GetTicks() - oldTick >= speed)
     {
-        dropping_tetromino->y++;
+        for (int j = 0; j < ARENA_HEIGHT; j++)
+        {
+            for (int i = 0; i < ARENA_WIDTH; i++)
+            {
+                printf("%d", arena[i][j]);
+            }
+            printf("\n");
+        }
+        printf("\n");
+
+
+        if (dropping_tetromino->terminate == true)
+        {
+            // Update the arena with the location of the tetromino where it has collided
+            for (int i = 0; i <= (TETROMINO_SIZE - 1) * 2; i += 2)
+            {
+                const uint8_t offset_x = dropping_tetromino->x + dropping_tetromino->shape.offsets[dropping_tetromino->rotation % 4][i];
+                const uint8_t offset_y = dropping_tetromino->y + dropping_tetromino->shape.offsets[dropping_tetromino->rotation % 4][i + 1];
+
+                arena[offset_x][offset_y] = 1; // TODO This can assign an ENUM, 0-7, of the index in some array somewhere corresponding to an RGB value
+            }
+
+            // If the dropping tetromino in the previous iteration is marked for termination, that means we must replace it
+            // with a new dropping tetromino, essentially "spawning" a new one
+            reset_dropping_tetromino(dropping_tetromino);
+            return true;
+        }
+        else
+        {
+            dropping_tetromino->y++;
+        }
+
+        // Check if dropping tetromino has connected with ground or another block, and mark for termination
+        if (check_dropping_tetromino_collision(dropping_tetromino, arena, dropping_tetromino->x, dropping_tetromino->y) == true)
+        {
+            SDL_Log("COLLISION");
+            dropping_tetromino->y--;
+            dropping_tetromino->terminate = true;
+        }
+
         oldTick = SDL_GetTicks();
     }
-
-    // Check if dropping termino has connected with ground or another block, and mark for termination
 
     // Check if a row is filled and destroy it, increment score
 
     return true;
 }
 
-bool is_dropping_tetromino_move_possible(const DroppingTetromino* dropping_tetromino, const uint8_t arena[ARENA_WIDTH][ARENA_HEIGHT], const uint8_t x, const uint8_t y)
+bool check_dropping_tetromino_move_possible(const DroppingTetromino* dropping_tetromino, const uint8_t arena[ARENA_WIDTH][ARENA_HEIGHT], const uint8_t x, const uint8_t y)
 {
     // Iterate over every other offset in the tetromino shape (to differentiate x, y coords)
     for (int i = 0; i <= (TETROMINO_SIZE - 1) * 2; i += 2)
     {
-        uint8_t offset_x = x + dropping_tetromino->shape.offsets[i];
+        const uint8_t offset_x = x + dropping_tetromino->shape.offsets[dropping_tetromino->rotation % 4][i];
 
         // Check if the tetromino has collided with the arena
         if (offset_x >= ARENA_WIDTH || offset_x < 0) return false;
 
         // Check if the tetromino has collided with another tetromino on the board
-        if (arena[offset_x][y] != 0) return true;
+        if (arena[offset_x][y] != 0) return false;
     }
 
     return true;
 }
 
-bool will_dropping_tetromino_collide(const DroppingTetromino* dropping_tetromino, const uint8_t arena[ARENA_WIDTH][ARENA_HEIGHT], const uint8_t x, const uint8_t y)
+bool check_dropping_tetromino_collision(const DroppingTetromino* dropping_tetromino, const uint8_t arena[ARENA_WIDTH][ARENA_HEIGHT], const uint8_t x, const uint8_t y)
 {
     // Iterate over every other offset in the tetromino shape (to differentiate x, y coords)
     for (int i = 0; i <= (TETROMINO_SIZE - 1) * 2; i += 2)
     {
-        uint8_t offset_x = x + dropping_tetromino->shape.offsets[i];
-        uint8_t offset_y = y + dropping_tetromino->shape.offsets[i + 1];
+        const uint8_t offset_x = x + dropping_tetromino->shape.offsets[dropping_tetromino->rotation % 4][i];
+        const uint8_t offset_y = y + dropping_tetromino->shape.offsets[dropping_tetromino->rotation % 4][i + 1];
 
         // Check if the tetromino has collided with the arena
         if (offset_y >= ARENA_HEIGHT || offset_y < 0) return true;

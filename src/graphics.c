@@ -45,7 +45,7 @@ bool draw_tetromino(SDL_Renderer* renderer, TetrominoShape tetromino, uint8_t x,
     // Iterate over the coordinate pairs of each block in the tetromino
     for (int i = 0; i < TETROMINO_SIZE * 2; i += 2)
     {
-        if (draw_block(renderer, tetromino.color, x + tetromino.offsets[i], y + tetromino.offsets[i + 1]) == false) return false;
+        if (draw_block(renderer, tetromino.color, x + tetromino.offsets[0][i], y + tetromino.offsets[0][i + 1]) == false) return false;
     }
 
     return true;

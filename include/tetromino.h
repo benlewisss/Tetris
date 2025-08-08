@@ -3,11 +3,11 @@
 
 #include <SDL3/SDL.h>
 
-// How many blocks constitute a tetromino
-#define TETROMINO_SIZE 4
-
-// How many different tetromino shapes there are
-#define TETROMINO_COUNT 7
+/* Constants */
+enum {
+    TETROMINO_SIZE = 4, // How many blocks constitute a tetromino
+    TETROMINO_COUNT = 7 // How many different tetromino shapes there are
+};
 
 /**
  * A structure that represents a tetromino color and shape.
@@ -15,7 +15,7 @@
 typedef struct TetrominoShape
 {
     SDL_Color color;
-    int8_t offsets[TETROMINO_SIZE * 2];
+    uint8_t offsets[4][TETROMINO_SIZE * 2]; // 4 Orientations in 2D Space
 } TetrominoShape;
 
 /**
@@ -25,7 +25,7 @@ typedef struct DroppingTetromino
 {
     uint8_t x;
     uint8_t y;
-    uint16_t rotation; // It doesn't seem possible to rotate a shape 16000 times before it hits the floor TODO If you put a limit to rotations/sec
+    int16_t rotation; // It doesn't seem possible to rotate a shape 16000 times before it hits the floor TODO If you put a limit to rotations/sec
     TetrominoShape shape;
     bool terminate;
 } DroppingTetromino;
