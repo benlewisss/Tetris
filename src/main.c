@@ -112,18 +112,10 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
         switch (event->key.key)
         {
         case SDLK_RIGHT:
-            if (!check_dropping_tetromino_collision(&g_dropping_tetromino, g_arena, g_dropping_tetromino.x + 1, g_dropping_tetromino.y))
-            {
-                SDL_Log("Right!");
-                g_dropping_tetromino.x++;
-            }
+            if (!check_dropping_tetromino_collision(&g_dropping_tetromino, g_arena, g_dropping_tetromino.x + 1, g_dropping_tetromino.y)) g_dropping_tetromino.x++;
             break;
         case SDLK_LEFT:
-            if (!check_dropping_tetromino_collision(&g_dropping_tetromino, g_arena, g_dropping_tetromino.x - 1, g_dropping_tetromino.y))
-            {
-                SDL_Log("Left!");
-                g_dropping_tetromino.x--;
-            }
+            if (!check_dropping_tetromino_collision(&g_dropping_tetromino, g_arena, g_dropping_tetromino.x - 1, g_dropping_tetromino.y)) g_dropping_tetromino.x--;
             break;
         default:
             break;
@@ -188,34 +180,21 @@ void SDL_AppQuit(void* appstate, SDL_AppResult result)
     }
 }
 
-
-
 bool game_iteration(SDL_Renderer* renderer, DroppingTetromino* dropping_tetromino, int arena[ARENA_WIDTH][ARENA_HEIGHT])
 {
     const SDL_Color grey = { 32, 32, 32, 255 };
     draw_arena(renderer, grey, arena);
 
-    // Draw Dropping Tetromino
     draw_tetromino(renderer, dropping_tetromino->shape, dropping_tetromino->x, dropping_tetromino->y);
 
-    // Every n ticks, drop tetromino
+    // Every n ticks, drop tetromino and run tetromino operations
     const int speed = 250;
-    static Uint64 old_tick = 250;
-    
+    static Uint64 old_tick = 0;
+
     if (SDL_GetTicks() - old_tick >= speed)
     {
-        for (int j = 0; j < ARENA_HEIGHT; j++)
-        {
-            for (int i = 0; i < ARENA_WIDTH; i++)
-            {
-                printf("%d", arena[i][j]);
-            }
-            printf("\n");
-        }
-        printf("\n");
-
-
-        if (dropping_tetromino->terminate == true)
+        // Check if dropping tetromino has connected with ground or another block, and mark for termination
+        if (check_dropping_tetromino_collision(dropping_tetromino, arena, dropping_tetromino->x, dropping_tetromino->y + 1) == true)
         {
             // Update the arena with the location of the tetromino where it has collided
             for (int i = 0; i <= (TETROMINO_SIZE - 1) * 2; i += 2)
@@ -232,16 +211,7 @@ bool game_iteration(SDL_Renderer* renderer, DroppingTetromino* dropping_tetromin
             return true;
         }
 
-        // Check if dropping tetromino has connected with ground or another block, and mark for termination
-        if (check_dropping_tetromino_collision(dropping_tetromino, arena, dropping_tetromino->x, dropping_tetromino->y + 1) == true)
-        {
-            SDL_Log("COLLISION");
-            dropping_tetromino->terminate = true;
-        }
-        else
-        {
-        	dropping_tetromino->y++;
-        }
+        dropping_tetromino->y++;
 
         old_tick = SDL_GetTicks();
     }
@@ -288,7 +258,7 @@ bool check_dropping_tetromino_collision(const DroppingTetromino* dropping_tetrom
 
 void reset_dropping_tetromino(DroppingTetromino* tetromino)
 {
-    tetromino->x = ARENA_WIDTH / 2;
+    tetromino->x = (ARENA_WIDTH - 1) / 2;
     tetromino->y = 0;
     tetromino->rotation = 0;
     tetromino->shape = get_random_tetromino_shape();
