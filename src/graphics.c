@@ -1,12 +1,13 @@
 #include <SDL3/SDL.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <assert.h>
 
 #include "../include/graphics.h"
 #include "../include/util.h"
 #include "../include/tetromino.h"
 
-bool draw_arena(SDL_Renderer* renderer, SDL_Color color, const int arena[ARENA_WIDTH][ARENA_HEIGHT])
+bool draw_arena(SDL_Renderer* renderer, SDL_Color color, const uint8_t arena[ARENA_WIDTH][ARENA_HEIGHT])
 {
     // Draw grid
     for (int j = 0; j < ARENA_HEIGHT; j++)
@@ -30,8 +31,10 @@ bool draw_arena(SDL_Renderer* renderer, SDL_Color color, const int arena[ARENA_W
     return true;
 }
 
-bool draw_block(SDL_Renderer* renderer, SDL_Color color, int x, int y)
+bool draw_block(SDL_Renderer* renderer, SDL_Color color, int8_t x, int8_t y)
 {
+    if (x >= ARENA_WIDTH || x < 0 || y >= ARENA_HEIGHT || y < 0) return false;
+
     SDL_FRect rect = { (float)x * BLOCK_SIZE, (float)y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE };
 
     SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
@@ -40,12 +43,12 @@ bool draw_block(SDL_Renderer* renderer, SDL_Color color, int x, int y)
     return true;
 }
 
-bool draw_tetromino(SDL_Renderer* renderer, TetrominoShape tetromino, int x, int y)
+bool draw_tetromino(SDL_Renderer* renderer, TetrominoShape tetromino, int16_t rotation, int8_t x, int8_t y)
 {
     // Iterate over the coordinate pairs of each block in the tetromino
     for (int i = 0; i < TETROMINO_SIZE * 2; i += 2)
     {
-        if (draw_block(renderer, tetromino.color, x + tetromino.offsets[0][i], y + tetromino.offsets[0][i + 1]) == false) return false;
+        if (draw_block(renderer, tetromino.color, x + tetromino.offsets[rotation % 4][i], y + tetromino.offsets[rotation % 4][i + 1]) == false) return false;
     }
 
     return true;

@@ -2,7 +2,7 @@
 
 #include "../include/tetromino.h"
 
-// Tetromino shape and color declaractions
+// Tetromino shape and color declarations
 const TetrominoShape PIECE_I =
 {
     {0, 0, 255, 255},
@@ -83,5 +83,14 @@ const TetrominoShape PIECE_J =
 TetrominoShape get_random_tetromino_shape()
 {
     TetrominoShape tetrominoes[TETROMINO_COUNT] = {PIECE_I, PIECE_O, PIECE_T, PIECE_Z, PIECE_S, PIECE_L, PIECE_J};
-    return tetrominoes[SDL_rand(TETROMINO_COUNT)];
+    return tetrominoes[SDL_rand(TETROMINO_COUNT)]; 
+}
+
+bool rotate_tetromino(DroppingTetromino* tetromino, const int8_t rotation_amount)
+{
+    // TODO Is the following the most efficient way to do this? (No, maybe just use If statements to handle the negatives)
+    enum orientation new_direction = (((tetromino->rotation + rotation_amount) % 4) + 4) % 4; // Cant do negative modulo operations in C
+    tetromino->rotation = new_direction;
+
+    return true;
 }

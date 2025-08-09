@@ -9,13 +9,21 @@ enum {
     TETROMINO_COUNT = 7 // How many different tetromino shapes there are
 };
 
+enum orientation {
+    NORTH,
+	EAST,
+	SOUTH,
+	WEST,
+};
+
+
 /**
  * A structure that represents a tetromino color and shape.
  */
 typedef struct TetrominoShape
 {
     SDL_Color color;
-    int offsets[4][TETROMINO_SIZE * 2]; // 4 Orientations in 2D Space
+    uint8_t offsets[4][TETROMINO_SIZE * 2]; // 4 Orientations in 2D Space
 } TetrominoShape;
 
 /**
@@ -23,9 +31,9 @@ typedef struct TetrominoShape
  */
 typedef struct DroppingTetromino
 {
-    int x;
-    int y;
-    int rotation; // It doesn't seem possible to rotate a shape 16000 times before it hits the floor TODO If you put a limit to rotations/sec
+    int8_t x;
+    int8_t y;
+    enum orientation rotation; // It doesn't seem possible to rotate a shape 16000 times before it hits the floor TODO If you put a limit to rotations/sec
     TetrominoShape shape;
     bool terminate;
 } DroppingTetromino;
@@ -45,5 +53,15 @@ const TetrominoShape PIECE_J;
  * \returns A tetromino shape object.
  */
 TetrominoShape get_random_tetromino_shape();
+
+/**
+ * Rotate a given dropping tetromino either left or right.
+ * 
+ * \param tetromino A pointer to the dropping tetromino
+ * \param rotation_amount A number, either positive or negative, indicating the number of times to rotate a shape, right or left respectively
+ *
+ * \returns True if success, false otherwise.
+ */
+bool rotate_tetromino(DroppingTetromino* tetromino, const int8_t rotation_amount);
 
 #endif //TETRINOMINO_H
