@@ -10,20 +10,20 @@
 bool draw_arena(SDL_Renderer* renderer, SDL_Color color, const uint8_t arena[ARENA_WIDTH][ARENA_HEIGHT])
 {
     // Draw grid
-    for (int j = 0; j < ARENA_HEIGHT; j++)
+    for (int row = 0; row < ARENA_HEIGHT; row++)
     {
-        for (int i = 0; i < ARENA_WIDTH; i++)
+        for (int col = 0; col < ARENA_WIDTH; col++)
         {
             SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
-            SDL_FRect rect = { (float)i * BLOCK_SIZE, (float)j * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE };
+            SDL_FRect rect = { (float)col * BLOCK_SIZE, (float)row * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE };
             if (SDL_RenderRect(renderer, &rect) == false) return false;
 
             // Draw filled squares
-            if (arena[i][j])
+            if (arena[col][row])
             {
                 //TODO Store colour data in the arena (0-7 representing colours) and grab that here
                 const SDL_Color grey = { 50, 50, 50, 255 };
-                draw_block(renderer, grey, i, j);
+                draw_block(renderer, grey, col, row);
             }
         }
     }

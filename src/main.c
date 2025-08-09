@@ -37,7 +37,12 @@ bool check_dropping_tetromino_collision(const DroppingTetromino* dropping_tetrom
 
 void reset_dropping_tetromino(DroppingTetromino* tetromino);
 
-uint16_t clear_filled_rows(const uint8_t arena[ARENA_WIDTH][ARENA_HEIGHT]);
+uint16_t clear_filled_rows(uint8_t arena[ARENA_WIDTH][ARENA_HEIGHT]);
+
+/* Drops everything above this row by one
+ *
+*/
+void drop_rows(uint8_t arena[ARENA_WIDTH][ARENA_HEIGHT], int drop_to_row);
 
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 {
@@ -187,6 +192,8 @@ bool game_iteration(SDL_Renderer* renderer, DroppingTetromino* dropping_tetromin
 
     if (SDL_GetTicks() - old_tick >= speed)
     {
+        clear_filled_rows(arena);
+
         // Check if dropping tetromino has connected with ground or another block, and mark for termination
         if (check_dropping_tetromino_collision(dropping_tetromino, arena, dropping_tetromino->x, dropping_tetromino->y + 1) == true)
         {
@@ -254,16 +261,46 @@ void reset_dropping_tetromino(DroppingTetromino* tetromino)
     tetromino->x = (ARENA_WIDTH - 1) / 2;
     tetromino->y = 0;
     tetromino->rotation = NORTH;
-    tetromino->shape = get_random_tetromino_shape();
+    tetromino->shape = PIECE_O; //get_random_tetromino_shape();
     tetromino->terminate = false;
 }
 
-uint16_t clear_filled_rows(const uint8_t arena[ARENA_WIDTH][ARENA_HEIGHT])
+uint16_t clear_filled_rows(uint8_t arena[ARENA_WIDTH][ARENA_HEIGHT])
 {
-	//for (int i = 0; i < ARENA_HEIGHT; i++)
-	//{
- //       for (int j = 0; j < ARENA_WIDTH; j++)
-	//}
+
+    // Start scanning for filled rows from bottom of arena
+	for (int row = ARENA_HEIGHT-1; row >= 0; row--)
+	{
+        bool row_filled = true;
+        for (int col = 0; col < ARENA_WIDTH; col++)
+        {
+            if (arena[col][row] == 0) row_filled = false;
+        }
+
+        if (row_filled == true)
+        {
+            for (int col = 0; col < ARENA_WIDTH; col++)
+            {
+                arena[col][row] = 0;
+            }
+
+            drop_rows(arena, row);
+        }
+
+        // TODO Exit out of loop if encountered a completely empty row (optimisation)
+	}
 
     return 0;
+}
+
+void drop_rows(uint8_t arena[ARENA_WIDTH][ARENA_HEIGHT], int drop_to_row)
+{
+    // Start scanning for filled rows from bottom of arena
+    for (int row = drop_to_row; row > 0; row--)
+    {
+        for (int col = 0; col < ARENA_WIDTH; col++)
+        {
+            arena[col][row] = arena[col][row-1];
+        }
+    }
 }
