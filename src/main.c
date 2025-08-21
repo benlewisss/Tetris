@@ -284,8 +284,8 @@ uint16_t clear_filled_rows(uint8_t arena[ARENA_WIDTH][ARENA_HEIGHT])
                 arena[col][row] = 0;
             }
 
-            drop_rows(arena, row);
-        }
+            drop_rows(arena, row); // TODO Because we are dropping the values of all of the rows here, if we have two sequential filled rows, it wont clear the one above until clear_filled_rows() is called a second time. I sense a bug here if we drop a tetromino too fast!
+        } // TODO Maybe change the colour of the row 1 frame before we delete it, as some sort of animation?
 
         // TODO Exit out of loop if encountered a completely empty row (optimisation)
 	}
