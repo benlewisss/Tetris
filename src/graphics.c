@@ -7,7 +7,7 @@
 #include "../include/util.h"
 #include "../include/tetromino.h"
 
-bool draw_arena(SDL_Renderer* renderer, SDL_Color color, const uint8_t arena[ARENA_WIDTH][ARENA_HEIGHT])
+bool draw_arena(SDL_Renderer* renderer, SDL_Color color, const uint8_t arena[ARENA_HEIGHT][ARENA_WIDTH])
 {
     // Draw grid
     for (int row = 0; row < ARENA_HEIGHT; row++)
@@ -19,7 +19,7 @@ bool draw_arena(SDL_Renderer* renderer, SDL_Color color, const uint8_t arena[ARE
             if (SDL_RenderRect(renderer, &rect) == false) return false;
 
             // Draw filled squares
-            if (arena[col][row])
+            if (arena[row][col])
             {
                 //TODO Store colour data in the arena (0-7 representing colours) and grab that here
                 const SDL_Color grey = { 50, 50, 50, 255 };

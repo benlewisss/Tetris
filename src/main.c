@@ -28,21 +28,21 @@ typedef struct
     bool is_running;
 } AppState;
 
-static uint8_t g_arena[ARENA_WIDTH][ARENA_HEIGHT] = {{0}};
+static uint8_t g_arena[ARENA_HEIGHT][ARENA_WIDTH] = {{0}};
 static DroppingTetromino g_dropping_tetromino;
 
-bool game_iteration(SDL_Renderer* renderer, DroppingTetromino* dropping_tetromino, uint8_t arena[ARENA_WIDTH][ARENA_HEIGHT]);
+bool game_iteration(SDL_Renderer* renderer, DroppingTetromino* dropping_tetromino, uint8_t arena[ARENA_HEIGHT][ARENA_WIDTH]);
 
-bool check_dropping_tetromino_collision(const DroppingTetromino* dropping_tetromino, const uint8_t arena[ARENA_WIDTH][ARENA_HEIGHT], const int8_t x, const int8_t y);
+bool check_dropping_tetromino_collision(const DroppingTetromino* dropping_tetromino, const uint8_t arena[ARENA_HEIGHT][ARENA_WIDTH], const int8_t x, const int8_t y);
 
 void reset_dropping_tetromino(DroppingTetromino* tetromino);
 
-uint16_t clear_filled_rows(uint8_t arena[ARENA_WIDTH][ARENA_HEIGHT]);
+uint16_t clear_filled_rows(uint8_t arena[ARENA_HEIGHT][ARENA_WIDTH]);
 
 /* Drops everything above this row by one
  *
 */
-void drop_rows(uint8_t arena[ARENA_WIDTH][ARENA_HEIGHT], int drop_to_row);
+void drop_rows(uint8_t arena[ARENA_HEIGHT][ARENA_WIDTH], int drop_to_row);
 
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 {
@@ -179,7 +179,7 @@ void SDL_AppQuit(void* appstate, SDL_AppResult result)
     }
 }
 
-bool game_iteration(SDL_Renderer* renderer, DroppingTetromino* dropping_tetromino, uint8_t arena[ARENA_WIDTH][ARENA_HEIGHT])
+bool game_iteration(SDL_Renderer* renderer, DroppingTetromino* dropping_tetromino, uint8_t arena[ARENA_HEIGHT][ARENA_WIDTH])
 {
     const SDL_Color grey = { 32, 32, 32, 255 };
     draw_arena(renderer, grey, arena);
@@ -203,7 +203,7 @@ bool game_iteration(SDL_Renderer* renderer, DroppingTetromino* dropping_tetromin
                 const int offset_x = dropping_tetromino->x + dropping_tetromino->shape.offsets[dropping_tetromino->rotation][i];
                 const int offset_y = dropping_tetromino->y + dropping_tetromino->shape.offsets[dropping_tetromino->rotation][i + 1];
 
-                arena[offset_x][offset_y] = 1; // TODO This can assign an ENUM, 0-7, of the index in some array somewhere corresponding to an RGB value
+                arena[offset_y][offset_x] = 1; // TODO This can assign an ENUM, 0-7, of the index in some array somewhere corresponding to an RGB value
             }
 
             // If the dropping tetromino in the previous iteration is marked for termination, that means we must replace it
@@ -222,7 +222,7 @@ bool game_iteration(SDL_Renderer* renderer, DroppingTetromino* dropping_tetromin
     return true;
 }
 
-bool check_dropping_tetromino_collision(const DroppingTetromino* dropping_tetromino, const uint8_t arena[ARENA_WIDTH][ARENA_HEIGHT], const int8_t x, const int8_t y)
+bool check_dropping_tetromino_collision(const DroppingTetromino* dropping_tetromino, const uint8_t arena[ARENA_HEIGHT][ARENA_WIDTH], const int8_t x, const int8_t y)
 {
     SDL_Log("DT @(%d,%d): Block(%d,%d,%d,%d,%d,%d,%d,%d)",
         dropping_tetromino->x,
@@ -246,7 +246,7 @@ bool check_dropping_tetromino_collision(const DroppingTetromino* dropping_tetrom
         if (offset_x >= ARENA_WIDTH || offset_x < 0 || offset_y >= ARENA_HEIGHT || offset_y < 0) return true;
 
         // Check if the tetromino has collided with another tetromino on the board
-        if (arena[offset_x][offset_y] != 0)
+        if (arena[offset_y][offset_x] != 0)
         {
             SDL_Log("Block @(%d,%d) collision!", offset_x, offset_y);
             return true;
@@ -261,46 +261,52 @@ void reset_dropping_tetromino(DroppingTetromino* tetromino)
     tetromino->x = (ARENA_WIDTH - 1) / 2;
     tetromino->y = 0;
     tetromino->rotation = NORTH;
-    tetromino->shape = PIECE_O; //get_random_tetromino_shape();
+    tetromino->shape = get_random_tetromino_shape();
     tetromino->terminate = false;
 }
 
-uint16_t clear_filled_rows(uint8_t arena[ARENA_WIDTH][ARENA_HEIGHT])
+uint16_t clear_filled_rows(uint8_t arena[ARENA_HEIGHT][ARENA_WIDTH])
 {
 
     // Start scanning for filled rows from bottom of arena
 	for (int row = ARENA_HEIGHT-1; row >= 0; row--)
 	{
-        bool row_filled = true;
+        // The number of grid squares that contain part of a tetromino in them
+        int grid_fill_count = 0;
         for (int col = 0; col < ARENA_WIDTH; col++)
         {
-            if (arena[col][row] == 0) row_filled = false;
+            if (arena[row][col] != 0) grid_fill_count++;
         }
 
-        if (row_filled == true)
+        // If we encounter an empty row while scanning upwards, then there can't be a filled row above that point
+        if (grid_fill_count == 0)
         {
+            break;
+        }
+
+        if (grid_fill_count >= ARENA_WIDTH)
+        {
+
             for (int col = 0; col < ARENA_WIDTH; col++)
             {
-                arena[col][row] = 0;
+                arena[row][col] = 0;
             }
 
-            drop_rows(arena, row); // TODO Because we are dropping the values of all of the rows here, if we have two sequential filled rows, it wont clear the one above until clear_filled_rows() is called a second time. I sense a bug here if we drop a tetromino too fast!
+            drop_rows(arena, row);
         } // TODO Maybe change the colour of the row 1 frame before we delete it, as some sort of animation?
-
-        // TODO Exit out of loop if encountered a completely empty row (optimisation)
 	}
 
     return 0;
 }
 
-void drop_rows(uint8_t arena[ARENA_WIDTH][ARENA_HEIGHT], int drop_to_row)
+void drop_rows(uint8_t arena[ARENA_HEIGHT][ARENA_WIDTH], int drop_to_row)
 {
     // Start scanning for filled rows from bottom of arena
     for (int row = drop_to_row; row > 0; row--)
     {
         for (int col = 0; col < ARENA_WIDTH; col++)
         {
-            arena[col][row] = arena[col][row-1];
+            arena[row][col] = arena[row-1][col];
         }
     }
 }
