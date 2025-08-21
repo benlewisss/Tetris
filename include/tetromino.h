@@ -4,26 +4,39 @@
 #include <SDL3/SDL.h>
 
 /* Constants */
-enum {
+enum
+{
     TETROMINO_SIZE = 4, // How many blocks constitute a tetromino
     TETROMINO_COUNT = 7 // How many different tetromino shapes there are
 };
 
-enum orientation {
+enum orientation
+{
     NORTH,
 	EAST,
 	SOUTH,
 	WEST,
 };
 
+typedef enum
+{
+    I = 1,
+    O = 2,
+    T = 3,
+    Z = 4,
+    S = 5,
+    L = 6,
+    J = 7,
+} tetromino_identifier;
 
 /**
- * A structure that represents a tetromino color and shape.
+ * A structure that represents a tetromino's shape and color.
  */
 typedef struct TetrominoShape
 {
+    tetromino_identifier identifier;
     SDL_Color color;
-    uint8_t offsets[4][TETROMINO_SIZE * 2]; // 4 Orientations in 2D Space
+    uint8_t offsets[4][TETROMINO_SIZE * 2]; // 4 Orientations in 2D Space, 4 coordinate pairs for each constituent square
 } TetrominoShape;
 
 /**
@@ -38,21 +51,21 @@ typedef struct DroppingTetromino
     bool terminate;
 } DroppingTetromino;
 
-// Tetromino shape declarations
-const TetrominoShape PIECE_I;
-const TetrominoShape PIECE_O;
-const TetrominoShape PIECE_T;
-const TetrominoShape PIECE_Z;
-const TetrominoShape PIECE_N;
-const TetrominoShape PIECE_L;
-const TetrominoShape PIECE_J;
 
 /**
- * Return a random tetromino shape object.
+ * Return a pointer to a random tetromino shape object.
  *
  * \returns A tetromino shape object.
  */
-TetrominoShape get_random_tetromino_shape();
+const TetrominoShape* get_random_tetromino_shape();
+
+/**
+ * Return a pointer to a tetromino shape object using its identifier.
+ * 
+ * @param identifier 
+ * @return A tetromino shape object. 
+ */
+const TetrominoShape* get_tetromino_shape_by_identifier(tetromino_identifier identifier);
 
 /**
  * Rotate a given dropping tetromino either left or right.

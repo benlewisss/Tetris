@@ -10,12 +10,11 @@
  * Draw the arena grid.
  *
  * \param renderer A pointer to the SDL renderer to draw to.
- * \param grid_color The color of the grid.
  * \param arena A pointer to a matrix representation of the tetris arena.
  *
  * \returns True if success, false otherwise.
  */
-bool draw_arena(SDL_Renderer* renderer, SDL_Color grid_color, const uint8_t arena[ARENA_HEIGHT][ARENA_WIDTH]);
+bool draw_arena(SDL_Renderer* renderer, const uint8_t arena[ARENA_HEIGHT][ARENA_WIDTH]);
 
 /**
  * Draw a single block on the grid.

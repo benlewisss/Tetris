@@ -28,7 +28,7 @@ typedef struct
     bool is_running;
 } AppState;
 
-static uint8_t g_arena[ARENA_HEIGHT][ARENA_WIDTH] = {{0}};
+static tetromino_identifier g_arena[ARENA_HEIGHT][ARENA_WIDTH] = {{0}};
 static DroppingTetromino g_dropping_tetromino;
 
 bool game_iteration(SDL_Renderer* renderer, DroppingTetromino* dropping_tetromino, uint8_t arena[ARENA_HEIGHT][ARENA_WIDTH]);
@@ -181,8 +181,7 @@ void SDL_AppQuit(void* appstate, SDL_AppResult result)
 
 bool game_iteration(SDL_Renderer* renderer, DroppingTetromino* dropping_tetromino, uint8_t arena[ARENA_HEIGHT][ARENA_WIDTH])
 {
-    const SDL_Color grey = { 32, 32, 32, 255 };
-    draw_arena(renderer, grey, arena);
+    draw_arena(renderer, arena);
 
     draw_tetromino(renderer, dropping_tetromino->shape, dropping_tetromino->rotation, dropping_tetromino->x, dropping_tetromino->y);
 
@@ -203,7 +202,7 @@ bool game_iteration(SDL_Renderer* renderer, DroppingTetromino* dropping_tetromin
                 const int offset_x = dropping_tetromino->x + dropping_tetromino->shape.offsets[dropping_tetromino->rotation][i];
                 const int offset_y = dropping_tetromino->y + dropping_tetromino->shape.offsets[dropping_tetromino->rotation][i + 1];
 
-                arena[offset_y][offset_x] = 1; // TODO This can assign an ENUM, 0-7, of the index in some array somewhere corresponding to an RGB value
+                arena[offset_y][offset_x] = dropping_tetromino->shape.identifier; // TODO This can assign an ENUM, 0-7, of the index in some array somewhere corresponding to an RGB value
             }
 
             // If the dropping tetromino in the previous iteration is marked for termination, that means we must replace it
@@ -261,7 +260,7 @@ void reset_dropping_tetromino(DroppingTetromino* tetromino)
     tetromino->x = (ARENA_WIDTH - 1) / 2;
     tetromino->y = 0;
     tetromino->rotation = NORTH;
-    tetromino->shape = PIECE_O;//get_random_tetromino_shape();
+    tetromino->shape = *get_random_tetromino_shape();
     tetromino->terminate = false;
 }
 

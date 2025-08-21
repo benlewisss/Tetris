@@ -7,22 +7,22 @@
 #include "../include/util.h"
 #include "../include/tetromino.h"
 
-bool draw_arena(SDL_Renderer* renderer, SDL_Color color, const uint8_t arena[ARENA_HEIGHT][ARENA_WIDTH])
+bool draw_arena(SDL_Renderer* renderer, const uint8_t arena[ARENA_HEIGHT][ARENA_WIDTH])
 {
-    // Draw grid
+    const SDL_Color grey = { 32, 32, 32, 255 };
     for (int row = 0; row < ARENA_HEIGHT; row++)
     {
         for (int col = 0; col < ARENA_WIDTH; col++)
         {
-            SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
+            // Draw grid
+            SDL_SetRenderDrawColor(renderer, grey.r, grey.g, grey.b, grey.a);
             SDL_FRect rect = { (float)col * BLOCK_SIZE, (float)row * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE };
             if (SDL_RenderRect(renderer, &rect) == false) return false;
 
             // Draw filled squares
             if (arena[row][col])
             {
-                //TODO Store colour data in the arena (0-7 representing colours) and grab that here
-                const SDL_Color grey = { 50, 50, 50, 255 };
+                const SDL_Color square_color = get_tetromino_shape_by_identifier(arena[row][col])->color;
                 draw_block(renderer, grey, col, row);
             }
         }
