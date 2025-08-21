@@ -187,7 +187,7 @@ bool game_iteration(SDL_Renderer* renderer, DroppingTetromino* dropping_tetromin
     draw_tetromino(renderer, dropping_tetromino->shape, dropping_tetromino->rotation, dropping_tetromino->x, dropping_tetromino->y);
 
     // Every n ticks, drop tetromino and run tetromino operations
-    const uint16_t speed = 250;
+    const uint16_t speed = 200;
     static Uint64 old_tick = 0;
 
     if (SDL_GetTicks() - old_tick >= speed)
@@ -261,7 +261,7 @@ void reset_dropping_tetromino(DroppingTetromino* tetromino)
     tetromino->x = (ARENA_WIDTH - 1) / 2;
     tetromino->y = 0;
     tetromino->rotation = NORTH;
-    tetromino->shape = get_random_tetromino_shape();
+    tetromino->shape = PIECE_O;//get_random_tetromino_shape();
     tetromino->terminate = false;
 }
 
@@ -286,14 +286,11 @@ uint16_t clear_filled_rows(uint8_t arena[ARENA_HEIGHT][ARENA_WIDTH])
 
         if (grid_fill_count >= ARENA_WIDTH)
         {
-
-            for (int col = 0; col < ARENA_WIDTH; col++)
-            {
-                arena[row][col] = 0;
-            }
-
+            // Clear row
+            memset(arena[row], 0, ARENA_WIDTH);
             drop_rows(arena, row);
-        } // TODO Maybe change the colour of the row 1 frame before we delete it, as some sort of animation?
+        }
+		// TODO Maybe change the colour of the row 1 frame before we delete it, as some sort of animation?
 	}
 
     return 0;
