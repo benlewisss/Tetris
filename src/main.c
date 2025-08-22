@@ -9,6 +9,7 @@
 #include "util.h"
 #include "tetromino.h"
 #include "game.h"
+#include "graphics.h"
 
 static const struct
 {
@@ -52,7 +53,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 	if (!SDL_Init(SDL_INIT_VIDEO))
 	{
 		SDL_Log("Couldn't initialize SDL: %s", SDL_GetError());
-		// SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Couldn't initialize SDL!", SDL_GetError(), NULL);
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Couldn't initialize SDL!", SDL_GetError(), NULL);
 		return SDL_APP_FAILURE;
 	}
 
@@ -64,6 +65,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 	if (!state->window || !state->renderer)
 	{
 		SDL_Log("Window or Renderer creation failed: %s", SDL_GetError());
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Window or Renderer creation failed!", SDL_GetError(), NULL);
 		SDL_DestroyWindow(state->window);
 		return SDL_APP_FAILURE;
 	}
@@ -72,6 +74,14 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 	*appstate = state;
 
 	// TETRIS Init
+	// Load resources, including assigning textures to tetrominoes
+	if (!LoadResources(state->renderer))
+	{
+		SDL_Log("Loading resources failed: %s", SDL_GetError());
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Failed to load resources!", SDL_GetError(), NULL);
+		return SDL_APP_FAILURE;
+	}
+
 	// Initialise the first dropping tetromino
 	ResetDroppingTetromino(&g_droppingTetromino);
 

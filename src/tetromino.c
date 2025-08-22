@@ -3,10 +3,10 @@
 #include "tetromino.h"
 
 // Tetromino shape and color declarations
-const TetrominoShape PIECE_I =
+TetrominoShape PIECE_I =
 {
 	I,
-	{0, 0, 255, 255},
+	NULL,
 	{
 		{1, 0, 1, 1, 1, 2, 1, 3},
 		{0, 1, 1, 1, 2, 1, 3, 1},
@@ -15,10 +15,10 @@ const TetrominoShape PIECE_I =
 	}
 };
 
-const TetrominoShape PIECE_O =
+TetrominoShape PIECE_O =
 {
 	O,
-	{255, 255, 0, 255},
+	NULL,
 	{
 		{0, 0, 1, 0, 0, 1, 1, 1},
 		{0, 0, 1, 0, 0, 1, 1, 1},
@@ -27,10 +27,10 @@ const TetrominoShape PIECE_O =
 	}
 };
 
-const TetrominoShape PIECE_T =
+TetrominoShape PIECE_T =
 {
 	T,
-	{128, 0, 128, 255},
+	NULL,
 	{
 		{1, 0, 0, 1, 1, 1, 2, 1},
 		{1, 0, 1, 1, 2, 1, 1, 2},
@@ -39,10 +39,10 @@ const TetrominoShape PIECE_T =
 	}
 };
 
-const TetrominoShape PIECE_Z =
+TetrominoShape PIECE_Z =
 {
 	Z,
-	{0, 255, 0, 255},
+	NULL,
 	{
 		{0, 1, 1, 1, 1, 2, 2, 2},
 		{1, 0, 1, 1, 0, 1, 0, 2},
@@ -51,10 +51,10 @@ const TetrominoShape PIECE_Z =
 	}
 };
 
-const TetrominoShape PIECE_S =
+TetrominoShape PIECE_S =
 {
 	S,
-	{255, 0, 0, 255},
+	NULL,
 	{
 		{1, 1, 2, 1, 0, 2, 1, 2},
 		{0, 0, 0, 1, 1, 1, 1, 2},
@@ -63,10 +63,10 @@ const TetrominoShape PIECE_S =
 	}
 };
 
-const TetrominoShape PIECE_L =
+TetrominoShape PIECE_L =
 {
 	L,
-	{255, 165, 0, 255},
+	NULL,
 	{
 		{1, 0, 1, 1, 1, 2, 2, 2},
 		{0, 1, 1, 1, 2, 1, 0, 2},
@@ -75,10 +75,10 @@ const TetrominoShape PIECE_L =
 	}
 };
 
-const TetrominoShape PIECE_J =
+TetrominoShape PIECE_J =
 {
 	J,
-	{255, 192, 203, 255},
+	NULL,
 	{
 		{1, 0, 1, 1, 0, 2, 1, 2},
 		{0, 0, 0, 1, 1, 1, 2, 1},
@@ -87,12 +87,10 @@ const TetrominoShape PIECE_J =
 	}
 };
 
-const TetrominoShape* GetTetrominoShapeByIdentifier(const TetrominoIdentifier identifier)
+TetrominoShape* GetTetrominoShapeByIdentifier(const TetrominoIdentifier identifier)
 {
 	// Note: The order of this array must match the TetrominoIdentifier enum
-	const TetrominoShape* tetrominoes[TETROMINO_COUNT] = {
-		&PIECE_I, &PIECE_O, &PIECE_T, &PIECE_Z, &PIECE_S, &PIECE_L, &PIECE_J
-	};
+	const TetrominoShape* tetrominoes[TETROMINO_COUNT] = {&PIECE_I, &PIECE_O, &PIECE_T, &PIECE_Z, &PIECE_S, &PIECE_L, &PIECE_J};
 	return tetrominoes[identifier - 1]; // Identifiers are 1-indexed, array is 0-indexed
 }
 

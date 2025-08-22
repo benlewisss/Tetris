@@ -21,11 +21,15 @@ bool GameIteration(SDL_Renderer* renderer, DroppingTetromino* droppingTetromino,
 		// Check if dropping tetromino has connected with ground or another block, and mark for termination
 		if (CheckDroppingTetrominoCollision(droppingTetromino, arena, droppingTetromino->x, droppingTetromino->y + 1) == true)
 		{
+			const int8_t droppingTetrominoX = droppingTetromino->x;
+			const int8_t droppingTetrominoY = droppingTetromino->y;
+			const uint8_t* droppingTetrominoRotatedOffsets = droppingTetromino->shape.offsets[droppingTetromino->rotation];
+
 			// Update the arena with the location of the tetromino where it has collided
 			for (int i = 0; i <= (TETROMINO_SIZE - 1) * 2; i += 2)
 			{
-				const int offsetX = droppingTetromino->x + droppingTetromino->shape.offsets[droppingTetromino->rotation][i];
-				const int offsetY = droppingTetromino->y + droppingTetromino->shape.offsets[droppingTetromino->rotation][i + 1];
+				const int offsetX = droppingTetrominoX + droppingTetrominoRotatedOffsets[i];
+				const int offsetY = droppingTetrominoY + droppingTetrominoRotatedOffsets[i + 1];
 
 				arena[offsetY][offsetX] = droppingTetromino->shape.identifier;
 			}
@@ -51,23 +55,25 @@ bool CheckDroppingTetrominoCollision(const DroppingTetromino* droppingTetromino,
                                      const int8_t x,
                                      const int8_t y)
 {
-	SDL_Log("DT @(%d,%d): Block(%d,%d,%d,%d,%d,%d,%d,%d)",
-	        droppingTetromino->x,
-	        droppingTetromino->y,
-	        droppingTetromino->x + droppingTetromino->shape.offsets[droppingTetromino->rotation][0],
-	        droppingTetromino->y + droppingTetromino->shape.offsets[droppingTetromino->rotation][1],
-	        droppingTetromino->x + droppingTetromino->shape.offsets[droppingTetromino->rotation][2],
-	        droppingTetromino->y + droppingTetromino->shape.offsets[droppingTetromino->rotation][3],
-	        droppingTetromino->x + droppingTetromino->shape.offsets[droppingTetromino->rotation][4],
-	        droppingTetromino->y + droppingTetromino->shape.offsets[droppingTetromino->rotation][5],
-	        droppingTetromino->x + droppingTetromino->shape.offsets[droppingTetromino->rotation][6],
-	        droppingTetromino->y + droppingTetromino->shape.offsets[droppingTetromino->rotation][7]);
+	//SDL_Log("DT @(%d,%d): Block(%d,%d,%d,%d,%d,%d,%d,%d)",
+	//        droppingTetromino->x,
+	//        droppingTetromino->y,
+	//        droppingTetromino->x + droppingTetromino->shape.offsets[droppingTetromino->rotation][0],
+	//        droppingTetromino->y + droppingTetromino->shape.offsets[droppingTetromino->rotation][1],
+	//        droppingTetromino->x + droppingTetromino->shape.offsets[droppingTetromino->rotation][2],
+	//        droppingTetromino->y + droppingTetromino->shape.offsets[droppingTetromino->rotation][3],
+	//        droppingTetromino->x + droppingTetromino->shape.offsets[droppingTetromino->rotation][4],
+	//        droppingTetromino->y + droppingTetromino->shape.offsets[droppingTetromino->rotation][5],
+	//        droppingTetromino->x + droppingTetromino->shape.offsets[droppingTetromino->rotation][6],
+	//        droppingTetromino->y + droppingTetromino->shape.offsets[droppingTetromino->rotation][7]);
+
+	const uint8_t* droppingTetrominoRotatedOffsets = droppingTetromino->shape.offsets[droppingTetromino->rotation];
 
 	// Iterate over every other offset in the tetromino shape (to differentiate x, y coords)
 	for (int i = 0; i <= (TETROMINO_SIZE - 1) * 2; i += 2)
 	{
-		const int8_t offsetX = x + droppingTetromino->shape.offsets[droppingTetromino->rotation][i];
-		const int8_t offsetY = y + droppingTetromino->shape.offsets[droppingTetromino->rotation][i + 1];
+		const int8_t offsetX = x + droppingTetrominoRotatedOffsets[i];
+		const int8_t offsetY = y + droppingTetrominoRotatedOffsets[i + 1];
 
 		// Check if the tetromino has collided with the arena
 		if (offsetX >= ARENA_WIDTH || offsetX < 0 || offsetY >= ARENA_HEIGHT || offsetY < 0) return true;
@@ -75,7 +81,7 @@ bool CheckDroppingTetrominoCollision(const DroppingTetromino* droppingTetromino,
 		// Check if the tetromino has collided with another tetromino on the board
 		if (arena[offsetY][offsetX] != 0)
 		{
-			SDL_Log("Block @(%d,%d) collision!", offsetX, offsetY);
+			//SDL_Log("Block @(%d,%d) collision!", offsetX, offsetY);
 			return true;
 		}
 	}

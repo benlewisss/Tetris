@@ -30,14 +30,13 @@ enum
 };
 
 /**
- * A structure that represents a tetromino's shape and color.
+ * A structure that represents a tetromino's shape and texture.
  */
 typedef struct TetrominoShape
 {
 	TetrominoIdentifier identifier;
-	SDL_Color color;
-	uint8_t offsets[4][TETROMINO_SIZE * 2];
-	// 4 Orientations in 2D Space, 4 coordinate pairs for each constituent square
+	SDL_Texture* texture;
+	uint8_t offsets[4][TETROMINO_SIZE * 2]; // 4 Orientations in 2D Space, 4 coordinate pairs for each constituent square
 } TetrominoShape;
 
 /**
@@ -58,10 +57,10 @@ typedef struct DroppingTetromino
  * @param identifier
  * @return A tetromino shape object.
  */
-const TetrominoShape* GetTetrominoShapeByIdentifier(TetrominoIdentifier identifier);
+TetrominoShape* GetTetrominoShapeByIdentifier(TetrominoIdentifier identifier);
 
 /**
- * Return a pointer to a random tetromino shape object.
+ * Return a pointer to a random readonly tetromino shape object.
  *
  * \returns A tetromino shape object.
  */
