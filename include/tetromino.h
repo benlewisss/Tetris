@@ -1,12 +1,12 @@
-#ifndef TETRINOMINO_H
-#define TETRINOMINO_H
+#ifndef TETROMINO_H
+#define TETROMINO_H
 
 #include <SDL3/SDL.h>
 
 /* ENUMERATORS */
-enum orientation
+enum Orientation
 {
-    NORTH,
+	NORTH,
 	EAST,
 	SOUTH,
 	WEST,
@@ -14,19 +14,19 @@ enum orientation
 
 typedef enum
 {
-    I = 1,
-    O = 2,
-    T = 3,
-    Z = 4,
-    S = 5,
-    L = 6,
-    J = 7,
-} tetromino_identifier;
+	I = 1,
+	O = 2,
+	T = 3,
+	Z = 4,
+	S = 5,
+	L = 6,
+	J = 7,
+} TetrominoIdentifier;
 
 enum
 {
-    TETROMINO_COUNT = 7, // How many different tetromino identifiers there are (how many shapes)
-    TETROMINO_SIZE = 4, // How many blocks constitute a tetromino
+	TETROMINO_COUNT = 7, // How many different tetromino identifiers there are (how many shapes)
+	TETROMINO_SIZE = 4, // How many blocks constitute a tetromino
 };
 
 /**
@@ -34,9 +34,10 @@ enum
  */
 typedef struct TetrominoShape
 {
-    tetromino_identifier identifier;
-    SDL_Color color;
-    uint8_t offsets[4][TETROMINO_SIZE * 2]; // 4 Orientations in 2D Space, 4 coordinate pairs for each constituent square
+	TetrominoIdentifier identifier;
+	SDL_Color color;
+	uint8_t offsets[4][TETROMINO_SIZE * 2];
+	// 4 Orientations in 2D Space, 4 coordinate pairs for each constituent square
 } TetrominoShape;
 
 /**
@@ -44,11 +45,11 @@ typedef struct TetrominoShape
  */
 typedef struct DroppingTetromino
 {
-    int8_t x;
-    int8_t y;
-    enum orientation rotation; // It doesn't seem possible to rotate a shape 16000 times before it hits the floor TODO If you put a limit to rotations/sec
-    TetrominoShape shape;
-    bool terminate;
+	int8_t x;
+	int8_t y;
+	enum Orientation rotation;
+	TetrominoShape shape;
+	bool terminate;
 } DroppingTetromino;
 
 /**
@@ -57,23 +58,23 @@ typedef struct DroppingTetromino
  * @param identifier
  * @return A tetromino shape object.
  */
-const TetrominoShape* get_tetromino_shape_by_identifier(tetromino_identifier identifier);
+const TetrominoShape* GetTetrominoShapeByIdentifier(TetrominoIdentifier identifier);
 
 /**
  * Return a pointer to a random tetromino shape object.
  *
  * \returns A tetromino shape object.
  */
-const TetrominoShape* get_random_tetromino_shape();
+const TetrominoShape* GetRandomTetrominoShape(void);
 
 /**
  * Rotate a given dropping tetromino either left or right.
  * 
  * \param tetromino A pointer to the dropping tetromino
- * \param rotation_amount A number, either positive or negative, indicating the number of times to rotate a shape, right or left respectively
+ * \param rotationAmount A number, either positive or negative, indicating the number of times to rotate a shape, right or left respectively
  *
  * \returns True if success, false otherwise.
  */
-bool rotate_tetromino(DroppingTetromino* tetromino, const int8_t rotation_amount);
+void RotateDroppingTetromino(DroppingTetromino* tetromino, int8_t rotationAmount);
 
-#endif //TETRINOMINO_H
+#endif //TETROMINO_H

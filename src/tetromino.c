@@ -87,24 +87,22 @@ const TetrominoShape PIECE_J =
     }
 };
 
-const TetrominoShape* get_tetromino_shape_by_identifier(const tetromino_identifier identifier)
+const TetrominoShape* GetTetrominoShapeByIdentifier(const TetrominoIdentifier identifier)
 {
-    // Note: The order of this array must match the tetromino_identifier enum
+    // Note: The order of this array must match the TetrominoIdentifier enum
     const TetrominoShape* tetrominoes[TETROMINO_COUNT] = { &PIECE_I, &PIECE_O, &PIECE_T, &PIECE_Z, &PIECE_S, &PIECE_L, &PIECE_J };
     return tetrominoes[identifier - 1]; // Identifiers are 1-indexed, array is 0-indexed
 }
 
-const TetrominoShape* get_random_tetromino_shape()
+const TetrominoShape* GetRandomTetrominoShape(void)
 {
-	const tetromino_identifier identifier = (SDL_rand(TETROMINO_COUNT) + 1); // (Identifiers are 1-indexed)
-    return get_tetromino_shape_by_identifier(identifier);
+	const TetrominoIdentifier identifier = (SDL_rand(TETROMINO_COUNT) + 1); // (Identifiers are 1-indexed)
+    return GetTetrominoShapeByIdentifier(identifier);
 }
 
-bool rotate_tetromino(DroppingTetromino* tetromino, const int8_t rotation_amount)
+void RotateDroppingTetromino(DroppingTetromino* tetromino, const int8_t rotationAmount)
 {
     // TODO Is the following the most efficient way to do this? (No, maybe just use If statements to handle the negatives)
-    const enum orientation new_direction = (((tetromino->rotation + rotation_amount) % 4) + 4) % 4; // Cant do negative modulo operations in C
-    tetromino->rotation = new_direction;
-
-    return true;
+    const enum Orientation newDirection = (((tetromino->rotation + rotationAmount) % 4) + 4) % 4; // Cant do negative modulo operations in C
+    tetromino->rotation = newDirection;
 }

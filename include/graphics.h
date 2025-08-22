@@ -14,7 +14,7 @@
  *
  * \returns True if success, false otherwise.
  */
-bool draw_arena(SDL_Renderer* renderer, const tetromino_identifier arena[ARENA_HEIGHT][ARENA_WIDTH]);
+bool draw_arena(SDL_Renderer* renderer, const TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH]);
 
 /**
  * Draw a single block on the grid.
