@@ -13,6 +13,6 @@ endif()
 # Find SDL3
 find_package(SDL3 REQUIRED CONFIG)
 
-add_executable(Tetris src/main.c "src/graphics.c" "src/tetromino.c" "include/tetromino.h" "include/util.h")
+add_executable(Tetris src/main.c "src/graphics.c" "src/tetromino.c" "include/tetromino.h" "include/util.h" "src/game.c" "include/game.h")
 
 target_link_libraries(Tetris PRIVATE SDL3::SDL3)
