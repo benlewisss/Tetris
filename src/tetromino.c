@@ -5,104 +5,107 @@
 // Tetromino shape and color declarations
 const TetrominoShape PIECE_I =
 {
-    I,
-    {0, 0, 255, 255},
-    {
-    	{1, 0, 1, 1, 1, 2, 1, 3},
+	I,
+	{0, 0, 255, 255},
+	{
+		{1, 0, 1, 1, 1, 2, 1, 3},
 		{0, 1, 1, 1, 2, 1, 3, 1},
 		{1, 0, 1, 1, 1, 2, 1, 3},
-        {0, 1, 1, 1, 2, 1, 3, 1},
-    }
+		{0, 1, 1, 1, 2, 1, 3, 1},
+	}
 };
 
 const TetrominoShape PIECE_O =
 {
-    O,
-    {255, 255, 0, 255},
-    {
-        {0, 0, 1, 0, 0, 1, 1, 1},
-        {0, 0, 1, 0, 0, 1, 1, 1},
-        {0, 0, 1, 0, 0, 1, 1, 1},
-        {0, 0, 1, 0, 0, 1, 1, 1},
-    }
+	O,
+	{255, 255, 0, 255},
+	{
+		{0, 0, 1, 0, 0, 1, 1, 1},
+		{0, 0, 1, 0, 0, 1, 1, 1},
+		{0, 0, 1, 0, 0, 1, 1, 1},
+		{0, 0, 1, 0, 0, 1, 1, 1},
+	}
 };
 
 const TetrominoShape PIECE_T =
 {
-    T,
-    {128, 0, 128, 255},
-    {
-        {1, 0, 0, 1, 1, 1, 2, 1},
-        {1, 0, 1, 1, 2, 1, 1, 2},
-        {0, 1, 1, 1, 2, 1, 1, 2},
-        {1, 0, 0, 1, 1, 1, 1, 2},
-    }
+	T,
+	{128, 0, 128, 255},
+	{
+		{1, 0, 0, 1, 1, 1, 2, 1},
+		{1, 0, 1, 1, 2, 1, 1, 2},
+		{0, 1, 1, 1, 2, 1, 1, 2},
+		{1, 0, 0, 1, 1, 1, 1, 2},
+	}
 };
 
 const TetrominoShape PIECE_Z =
 {
-    Z,
-    {0, 255, 0, 255},
-    {
-        {0, 1, 1, 1, 1, 2, 2, 2},
-        {1, 0, 1, 1, 0, 1, 0, 2},
-        {0, 0, 1, 0, 1, 1, 2, 1},
-        {2, 0, 1, 1, 2, 1, 1, 2},
-    }
+	Z,
+	{0, 255, 0, 255},
+	{
+		{0, 1, 1, 1, 1, 2, 2, 2},
+		{1, 0, 1, 1, 0, 1, 0, 2},
+		{0, 0, 1, 0, 1, 1, 2, 1},
+		{2, 0, 1, 1, 2, 1, 1, 2},
+	}
 };
 
 const TetrominoShape PIECE_S =
 {
-    S,
-    {255, 0, 0, 255},
-    {
-        {1, 1, 2, 1, 0, 2, 1, 2},
-        {0, 0, 0, 1, 1, 1, 1, 2},
-        {1, 0, 2, 0, 0, 1, 1, 1},
-        {1, 0, 1, 1, 2, 1, 2, 2},
-    }
+	S,
+	{255, 0, 0, 255},
+	{
+		{1, 1, 2, 1, 0, 2, 1, 2},
+		{0, 0, 0, 1, 1, 1, 1, 2},
+		{1, 0, 2, 0, 0, 1, 1, 1},
+		{1, 0, 1, 1, 2, 1, 2, 2},
+	}
 };
 
 const TetrominoShape PIECE_L =
 {
-    L,
-    {255, 165, 0, 255},
-    {
-        {1, 0, 1, 1, 1, 2, 2, 2},
-        {0, 1, 1, 1, 2, 1, 0, 2},
-        {0, 0, 1, 0, 1, 1, 1, 2},
-        {2, 0, 0, 1, 1, 1, 2, 1},
-    }
+	L,
+	{255, 165, 0, 255},
+	{
+		{1, 0, 1, 1, 1, 2, 2, 2},
+		{0, 1, 1, 1, 2, 1, 0, 2},
+		{0, 0, 1, 0, 1, 1, 1, 2},
+		{2, 0, 0, 1, 1, 1, 2, 1},
+	}
 };
 
 const TetrominoShape PIECE_J =
 {
-    J,
-    {255, 192, 203, 255},
-    {
-        {1, 0, 1, 1, 0, 2, 1, 2},
-        {0, 0, 0, 1, 1, 1, 2, 1},
-        {1, 0, 2, 0, 1, 1, 1, 2},
-        {0, 1, 1, 1, 2, 1, 2, 2},
-    }
+	J,
+	{255, 192, 203, 255},
+	{
+		{1, 0, 1, 1, 0, 2, 1, 2},
+		{0, 0, 0, 1, 1, 1, 2, 1},
+		{1, 0, 2, 0, 1, 1, 1, 2},
+		{0, 1, 1, 1, 2, 1, 2, 2},
+	}
 };
 
 const TetrominoShape* GetTetrominoShapeByIdentifier(const TetrominoIdentifier identifier)
 {
-    // Note: The order of this array must match the TetrominoIdentifier enum
-    const TetrominoShape* tetrominoes[TETROMINO_COUNT] = { &PIECE_I, &PIECE_O, &PIECE_T, &PIECE_Z, &PIECE_S, &PIECE_L, &PIECE_J };
-    return tetrominoes[identifier - 1]; // Identifiers are 1-indexed, array is 0-indexed
+	// Note: The order of this array must match the TetrominoIdentifier enum
+	const TetrominoShape* tetrominoes[TETROMINO_COUNT] = {
+		&PIECE_I, &PIECE_O, &PIECE_T, &PIECE_Z, &PIECE_S, &PIECE_L, &PIECE_J
+	};
+	return tetrominoes[identifier - 1]; // Identifiers are 1-indexed, array is 0-indexed
 }
 
 const TetrominoShape* GetRandomTetrominoShape(void)
 {
 	const TetrominoIdentifier identifier = (SDL_rand(TETROMINO_COUNT) + 1); // (Identifiers are 1-indexed)
-    return GetTetrominoShapeByIdentifier(identifier);
+	return GetTetrominoShapeByIdentifier(identifier);
 }
 
 void RotateDroppingTetromino(DroppingTetromino* tetromino, const int8_t rotationAmount)
 {
-    // TODO Is the following the most efficient way to do this? (No, maybe just use If statements to handle the negatives)
-    const enum Orientation newDirection = (((tetromino->rotation + rotationAmount) % 4) + 4) % 4; // Cant do negative modulo operations in C
-    tetromino->rotation = newDirection;
+	// TODO Is the following the most efficient way to do this? (No, maybe just use If statements to handle the negatives)
+	const enum Orientation newDirection = (((tetromino->rotation + rotationAmount) % 4) + 4) % 4;
+	// Cant do negative modulo operations in C
+	tetromino->rotation = newDirection;
 }
