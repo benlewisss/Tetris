@@ -181,9 +181,9 @@ void SDL_AppQuit(void* appstate, SDL_AppResult result)
 
 bool game_iteration(SDL_Renderer* renderer, DroppingTetromino* dropping_tetromino, TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH])
 {
-    draw_arena(renderer, arena);
+    DrawArena(renderer, arena);
 
-    draw_tetromino(renderer, dropping_tetromino->shape, dropping_tetromino->rotation, dropping_tetromino->x, dropping_tetromino->y);
+    DrawDroppingTetromino(renderer, dropping_tetromino);
 
     // Every n ticks, drop tetromino and run tetromino operations
     const uint16_t speed = 200;
