@@ -6,10 +6,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../include/util.h"
-#include "../include/tetromino.h"
-#include "../include/graphics.h"
-#include "../include/game.h"
+#include "util.h"
+#include "tetromino.h"
+#include "game.h"
 
 static const struct
 {

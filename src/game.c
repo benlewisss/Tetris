@@ -1,7 +1,7 @@
-#include "../include/game.h"
-#include "../include/util.h"
-#include "../include/tetromino.h"
-#include "../include/graphics.h"
+#include "game.h"
+#include "util.h"
+#include "tetromino.h"
+#include "graphics.h"
 
 bool GameIteration(SDL_Renderer* renderer, DroppingTetromino* droppingTetromino,
                    TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH])
@@ -19,19 +19,15 @@ bool GameIteration(SDL_Renderer* renderer, DroppingTetromino* droppingTetromino,
 		ClearFilledRows(arena);
 
 		// Check if dropping tetromino has connected with ground or another block, and mark for termination
-		if (CheckDroppingTetrominoCollision(droppingTetromino, arena, droppingTetromino->x, droppingTetromino->y + 1) ==
-			true)
+		if (CheckDroppingTetrominoCollision(droppingTetromino, arena, droppingTetromino->x, droppingTetromino->y + 1) == true)
 		{
 			// Update the arena with the location of the tetromino where it has collided
 			for (int i = 0; i <= (TETROMINO_SIZE - 1) * 2; i += 2)
 			{
-				const int offset_x = droppingTetromino->x + droppingTetromino->shape.offsets[droppingTetromino->
-					rotation][i];
-				const int offset_y = droppingTetromino->y + droppingTetromino->shape.offsets[droppingTetromino->
-					rotation][i + 1];
+				const int offsetX = droppingTetromino->x + droppingTetromino->shape.offsets[droppingTetromino->rotation][i];
+				const int offsetY = droppingTetromino->y + droppingTetromino->shape.offsets[droppingTetromino->rotation][i + 1];
 
-				arena[offset_y][offset_x] = droppingTetromino->shape.identifier;
-				// TODO This can assign an ENUM, 0-7, of the index in some array somewhere corresponding to an RGB value
+				arena[offsetY][offsetX] = droppingTetromino->shape.identifier;
 			}
 
 			// If the dropping tetromino in the previous iteration is marked for termination, that means we must replace it

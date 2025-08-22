@@ -14,7 +14,7 @@
  *
  * \returns True if success, false otherwise.
  */
-bool DrawArena(SDL_Renderer* renderer, TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH]);
+bool DrawArena(SDL_Renderer* renderer, const TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH]);
 
 /**
  * Draw a single block on the grid.
@@ -36,6 +36,6 @@ bool DrawBlock(SDL_Renderer* renderer, SDL_Color color, int8_t x, int8_t y);
  *
  * \returns True if success, false otherwise.
  */
-bool DrawDroppingTetromino(SDL_Renderer* renderer, DroppingTetromino* droppingTetromino);
+bool DrawDroppingTetromino(SDL_Renderer* renderer, const DroppingTetromino* droppingTetromino);
 
 #endif //GRAPHICS_H

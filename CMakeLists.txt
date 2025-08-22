@@ -10,9 +10,14 @@ if(DEFINED ENV{VCPKG_ROOT})
         CACHE STRING "Vcpkg toolchain file")
 endif()
 
-# Find SDL3
+# Find SDL3 and SDL3_image
 find_package(SDL3 REQUIRED CONFIG)
+find_package(SDL3_image REQUIRED CONFIG)
 
-add_executable(Tetris src/main.c "src/graphics.c" "src/tetromino.c" "include/tetromino.h" "include/util.h" "src/game.c" "include/game.h")
+add_executable(Tetris "src/main.c" "src/game.c" "src/graphics.c" "src/tetromino.c" "include/game.h" "include/graphics.h" "include/tetromino.h" "include/util.h"  )
 
-target_link_libraries(Tetris PRIVATE SDL3::SDL3)
+# Add include/ directory to search path
+target_include_directories(Tetris PRIVATE ${CMAKE_SOURCE_DIR}/include)
+
+# Link against SDL3 and SDL3_image
+target_link_libraries(Tetris PRIVATE SDL3::SDL3 SDL3_image::SDL3_image)

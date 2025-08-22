@@ -1,6 +1,6 @@
 #include <SDL3/SDL.h>
 
-#include "../include/tetromino.h"
+#include "tetromino.h"
 
 // Tetromino shape and color declarations
 const TetrominoShape PIECE_I =
