@@ -87,14 +87,30 @@ bool CheckDroppingTetrominoCollision(const DroppingTetromino* droppingTetromino,
 	return false;
 }
 
-void ResetDroppingTetromino(DroppingTetromino* tetromino)
+void ResetDroppingTetromino(DroppingTetromino* droppingTetromino)
 {
-	tetromino->x = (ARENA_WIDTH - 1) / 2;
-	tetromino->y = 0;
-	tetromino->rotation = NORTH;
-	tetromino->shape = *GetRandomTetrominoShape();
-	tetromino->terminate = false;
+	droppingTetromino->x = (ARENA_WIDTH - 1) / 2;
+	droppingTetromino->y = 0;
+	droppingTetromino->rotation = NORTH;
+	droppingTetromino->shape = *GetRandomTetrominoShape();
+	droppingTetromino->terminate = false;
 }
+
+/* Drops everything above this row by one
+ *
+*/
+static void DropRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], const int dropToRow)
+{
+	// Start scanning for filled rows from bottom of arena
+	for (int row = dropToRow; row > 0; row--)
+	{
+		for (int col = 0; col < ARENA_WIDTH; col++)
+		{
+			arena[row][col] = arena[row - 1][col];
+		}
+	}
+}
+
 
 uint16_t ClearFilledRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH])
 {
@@ -124,16 +140,4 @@ uint16_t ClearFilledRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH])
 	}
 
 	return 0;
-}
-
-void DropRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], const int dropToRow)
-{
-	// Start scanning for filled rows from bottom of arena
-	for (int row = dropToRow; row > 0; row--)
-	{
-		for (int col = 0; col < ARENA_WIDTH; col++)
-		{
-			arena[row][col] = arena[row - 1][col];
-		}
-	}
 }

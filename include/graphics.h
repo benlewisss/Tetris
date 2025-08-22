@@ -10,7 +10,7 @@
  * Draw the arena grid.
  *
  * \param renderer A pointer to the SDL renderer to draw to.
- * \param arena A pointer to a matrix representation of the tetris arena.
+ * \param arena The matrix representation of the tetris arena.
  *
  * \returns True if success, false otherwise.
  */

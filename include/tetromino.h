@@ -70,8 +70,8 @@ const TetrominoShape* GetRandomTetrominoShape(void);
 /**
  * Rotate a given dropping tetromino either left or right.
  * 
- * \param tetromino A pointer to the dropping tetromino
- * \param rotationAmount A number, either positive or negative, indicating the number of times to rotate a shape, right or left respectively
+ * \param tetromino A pointer to the dropping tetromino.
+ * \param rotationAmount A number, either positive or negative, indicating the number of times to rotate a shape, right or left respectively.
  *
  * \returns True if success, false otherwise.
  */
