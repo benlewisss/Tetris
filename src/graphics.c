@@ -7,7 +7,7 @@
 #include "../include/util.h"
 #include "../include/tetromino.h"
 
-bool draw_arena(SDL_Renderer* renderer, const uint8_t arena[ARENA_HEIGHT][ARENA_WIDTH])
+bool draw_arena(SDL_Renderer* renderer, const tetromino_identifier arena[ARENA_HEIGHT][ARENA_WIDTH])
 {
     const SDL_Color grey = { 32, 32, 32, 255 };
     for (int row = 0; row < ARENA_HEIGHT; row++)
@@ -23,7 +23,7 @@ bool draw_arena(SDL_Renderer* renderer, const uint8_t arena[ARENA_HEIGHT][ARENA_
             if (arena[row][col])
             {
                 const SDL_Color square_color = get_tetromino_shape_by_identifier(arena[row][col])->color;
-                draw_block(renderer, grey, col, row);
+                draw_block(renderer, square_color, col, row);
             }
         }
     }

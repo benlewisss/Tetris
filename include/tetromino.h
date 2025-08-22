@@ -3,13 +3,7 @@
 
 #include <SDL3/SDL.h>
 
-/* Constants */
-enum
-{
-    TETROMINO_SIZE = 4, // How many blocks constitute a tetromino
-    TETROMINO_COUNT = 7 // How many different tetromino shapes there are
-};
-
+/* ENUMERATORS */
 enum orientation
 {
     NORTH,
@@ -28,6 +22,12 @@ typedef enum
     L = 6,
     J = 7,
 } tetromino_identifier;
+
+enum
+{
+    TETROMINO_COUNT = 7, // How many different tetromino identifiers there are (how many shapes)
+    TETROMINO_SIZE = 4, // How many blocks constitute a tetromino
+};
 
 /**
  * A structure that represents a tetromino's shape and color.
@@ -51,6 +51,13 @@ typedef struct DroppingTetromino
     bool terminate;
 } DroppingTetromino;
 
+/**
+ * Return a pointer to a tetromino shape object using its identifier.
+ *
+ * @param identifier
+ * @return A tetromino shape object.
+ */
+const TetrominoShape* get_tetromino_shape_by_identifier(tetromino_identifier identifier);
 
 /**
  * Return a pointer to a random tetromino shape object.
@@ -58,14 +65,6 @@ typedef struct DroppingTetromino
  * \returns A tetromino shape object.
  */
 const TetrominoShape* get_random_tetromino_shape();
-
-/**
- * Return a pointer to a tetromino shape object using its identifier.
- * 
- * @param identifier 
- * @return A tetromino shape object. 
- */
-const TetrominoShape* get_tetromino_shape_by_identifier(tetromino_identifier identifier);
 
 /**
  * Rotate a given dropping tetromino either left or right.

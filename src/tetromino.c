@@ -87,25 +87,23 @@ const TetrominoShape PIECE_J =
     }
 };
 
-// Note: The order of this array must match the enum 
+const TetrominoShape* get_tetromino_shape_by_identifier(const tetromino_identifier identifier)
+{
+    // Note: The order of this array must match the tetromino_identifier enum
+    const TetrominoShape* tetrominoes[TETROMINO_COUNT] = { &PIECE_I, &PIECE_O, &PIECE_T, &PIECE_Z, &PIECE_S, &PIECE_L, &PIECE_J };
+    return tetrominoes[identifier - 1]; // Identifiers are 1-indexed, array is 0-indexed
+}
 
 const TetrominoShape* get_random_tetromino_shape()
 {
-    // TODO Figure out an elegant way to reduce the code replication here, so that, if we were to add a new piece, we wouldn't need to change 1. Add a new piece struct, 2. Change the ID enum, 3. Change the tetrominoes array's (and make sure order equal to enum) in the methods in this file.
-    const TetrominoShape* tetrominoes[TETROMINO_COUNT] = { &PIECE_I, &PIECE_O, &PIECE_T, &PIECE_Z, &PIECE_S, &PIECE_L, &PIECE_J };
-    return tetrominoes[SDL_rand(TETROMINO_COUNT)]; 
-}
-
-const TetrominoShape* get_tetromino_shape_by_identifier(tetromino_identifier identifier)
-{
-    const TetrominoShape* tetrominoes[TETROMINO_COUNT] = { &PIECE_I, &PIECE_O, &PIECE_T, &PIECE_Z, &PIECE_S, &PIECE_L, &PIECE_J };
-    return tetrominoes[identifier - 1]; // Identifiers are 1-indexed, array is 0-indexed
+	const tetromino_identifier identifier = (SDL_rand(TETROMINO_COUNT) + 1); // (Identifiers are 1-indexed)
+    return get_tetromino_shape_by_identifier(identifier);
 }
 
 bool rotate_tetromino(DroppingTetromino* tetromino, const int8_t rotation_amount)
 {
     // TODO Is the following the most efficient way to do this? (No, maybe just use If statements to handle the negatives)
-    enum orientation new_direction = (((tetromino->rotation + rotation_amount) % 4) + 4) % 4; // Cant do negative modulo operations in C
+    const enum orientation new_direction = (((tetromino->rotation + rotation_amount) % 4) + 4) % 4; // Cant do negative modulo operations in C
     tetromino->rotation = new_direction;
 
     return true;

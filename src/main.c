@@ -31,18 +31,18 @@ typedef struct
 static tetromino_identifier g_arena[ARENA_HEIGHT][ARENA_WIDTH] = {{0}};
 static DroppingTetromino g_dropping_tetromino;
 
-bool game_iteration(SDL_Renderer* renderer, DroppingTetromino* dropping_tetromino, uint8_t arena[ARENA_HEIGHT][ARENA_WIDTH]);
+bool game_iteration(SDL_Renderer* renderer, DroppingTetromino* dropping_tetromino, tetromino_identifier arena[ARENA_HEIGHT][ARENA_WIDTH]);
 
-bool check_dropping_tetromino_collision(const DroppingTetromino* dropping_tetromino, const uint8_t arena[ARENA_HEIGHT][ARENA_WIDTH], const int8_t x, const int8_t y);
+bool check_dropping_tetromino_collision(const DroppingTetromino* dropping_tetromino, const tetromino_identifier arena[ARENA_HEIGHT][ARENA_WIDTH], const int8_t x, const int8_t y);
 
 void reset_dropping_tetromino(DroppingTetromino* tetromino);
 
-uint16_t clear_filled_rows(uint8_t arena[ARENA_HEIGHT][ARENA_WIDTH]);
+uint16_t clear_filled_rows(tetromino_identifier arena[ARENA_HEIGHT][ARENA_WIDTH]);
 
 /* Drops everything above this row by one
  *
 */
-void drop_rows(uint8_t arena[ARENA_HEIGHT][ARENA_WIDTH], int drop_to_row);
+void drop_rows(tetromino_identifier arena[ARENA_HEIGHT][ARENA_WIDTH], int drop_to_row);
 
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 {
@@ -179,7 +179,7 @@ void SDL_AppQuit(void* appstate, SDL_AppResult result)
     }
 }
 
-bool game_iteration(SDL_Renderer* renderer, DroppingTetromino* dropping_tetromino, uint8_t arena[ARENA_HEIGHT][ARENA_WIDTH])
+bool game_iteration(SDL_Renderer* renderer, DroppingTetromino* dropping_tetromino, tetromino_identifier arena[ARENA_HEIGHT][ARENA_WIDTH])
 {
     draw_arena(renderer, arena);
 
@@ -221,7 +221,7 @@ bool game_iteration(SDL_Renderer* renderer, DroppingTetromino* dropping_tetromin
     return true;
 }
 
-bool check_dropping_tetromino_collision(const DroppingTetromino* dropping_tetromino, const uint8_t arena[ARENA_HEIGHT][ARENA_WIDTH], const int8_t x, const int8_t y)
+bool check_dropping_tetromino_collision(const DroppingTetromino* dropping_tetromino, const tetromino_identifier arena[ARENA_HEIGHT][ARENA_WIDTH], const int8_t x, const int8_t y)
 {
     SDL_Log("DT @(%d,%d): Block(%d,%d,%d,%d,%d,%d,%d,%d)",
         dropping_tetromino->x,
@@ -264,7 +264,7 @@ void reset_dropping_tetromino(DroppingTetromino* tetromino)
     tetromino->terminate = false;
 }
 
-uint16_t clear_filled_rows(uint8_t arena[ARENA_HEIGHT][ARENA_WIDTH])
+uint16_t clear_filled_rows(tetromino_identifier arena[ARENA_HEIGHT][ARENA_WIDTH])
 {
 
     // Start scanning for filled rows from bottom of arena
@@ -295,7 +295,7 @@ uint16_t clear_filled_rows(uint8_t arena[ARENA_HEIGHT][ARENA_WIDTH])
     return 0;
 }
 
-void drop_rows(uint8_t arena[ARENA_HEIGHT][ARENA_WIDTH], int drop_to_row)
+void drop_rows(tetromino_identifier arena[ARENA_HEIGHT][ARENA_WIDTH], int drop_to_row)
 {
     // Start scanning for filled rows from bottom of arena
     for (int row = drop_to_row; row > 0; row--)
