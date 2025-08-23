@@ -1,4 +1,7 @@
 #include "game.h"
+
+#include <stdio.h>
+
 #include "util.h"
 #include "tetromino.h"
 #include "graphics.h"
@@ -8,7 +11,7 @@ bool GameIteration(DroppingTetromino* droppingTetromino,
 {
 
 	// Every n ticks, drop tetromino and run tetromino operations
-	const uint16_t speed = 500;
+	const int speed = 300;
 	static Uint64 oldTick = 0;
 
 	if (SDL_GetTicks() - oldTick >= speed)
@@ -18,17 +21,22 @@ bool GameIteration(DroppingTetromino* droppingTetromino,
 		// Check if dropping tetromino has connected with ground or another block, and mark for termination
 		if (CheckDroppingTetrominoCollision(droppingTetromino, arena, droppingTetromino->x, droppingTetromino->y + 1) == true)
 		{
-			const int8_t droppingTetrominoX = droppingTetromino->x;
-			const int8_t droppingTetrominoY = droppingTetromino->y;
-			const uint8_t* droppingTetrominoRotatedOffsets = droppingTetromino->shape.offsets[droppingTetromino->rotation];
+			const int droppingTetrominoX = droppingTetromino->x;
+			const int droppingTetrominoY = droppingTetromino->y;
+			const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = droppingTetromino->shape.coordinates[droppingTetromino->rotation];
 
 			// Update the arena with the location of the tetromino where it has collided
-			for (int i = 0; i <= (TETROMINO_SIZE - 1) * 2; i += 2)
+			for (int i = 0; i < TETROMINO_MAX_SIZE; i++)
 			{
-				const int offsetX = droppingTetrominoX + droppingTetrominoRotatedOffsets[i];
-				const int offsetY = droppingTetrominoY + droppingTetrominoRotatedOffsets[i + 1];
+				for (int j = 0; j < TETROMINO_MAX_SIZE; j++)
+				{
+					printf("%d ", droppingTetrominoRotatedCoordinates[i][j]);
 
-				arena[offsetY][offsetX] = droppingTetromino->shape.identifier;
+					if (droppingTetrominoRotatedCoordinates[i][j] == false) continue;
+					
+					arena[droppingTetrominoY + i][droppingTetrominoX + j] = droppingTetromino->shape.identifier;
+				}
+				printf("\n");
 			}
 
 			// If the dropping tetromino in the previous iteration is marked for termination, that means we must replace it
@@ -49,40 +57,36 @@ bool GameIteration(DroppingTetromino* droppingTetromino,
 
 bool CheckDroppingTetrominoCollision(const DroppingTetromino* droppingTetromino,
                                      const TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH],
-                                     const int8_t x,
-                                     const int8_t y)
+                                     const int x, 
+                                     const int y)
 {
-	//SDL_Log("DT @(%d,%d): Block(%d,%d,%d,%d,%d,%d,%d,%d)",
-	//        droppingTetromino->x,
-	//        droppingTetromino->y,
-	//        droppingTetromino->x + droppingTetromino->shape.offsets[droppingTetromino->rotation][0],
-	//        droppingTetromino->y + droppingTetromino->shape.offsets[droppingTetromino->rotation][1],
-	//        droppingTetromino->x + droppingTetromino->shape.offsets[droppingTetromino->rotation][2],
-	//        droppingTetromino->y + droppingTetromino->shape.offsets[droppingTetromino->rotation][3],
-	//        droppingTetromino->x + droppingTetromino->shape.offsets[droppingTetromino->rotation][4],
-	//        droppingTetromino->y + droppingTetromino->shape.offsets[droppingTetromino->rotation][5],
-	//        droppingTetromino->x + droppingTetromino->shape.offsets[droppingTetromino->rotation][6],
-	//        droppingTetromino->y + droppingTetromino->shape.offsets[droppingTetromino->rotation][7]);
+	const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = droppingTetromino->shape.coordinates[droppingTetromino->rotation];
 
-	const uint8_t* droppingTetrominoRotatedOffsets = droppingTetromino->shape.offsets[droppingTetromino->rotation];
+	printf("DT @ (%d,%d)\n", droppingTetromino->x, droppingTetromino->y);
 
-	// Iterate over every other offset in the tetromino shape (to differentiate x, y coords)
-	for (int i = 0; i <= (TETROMINO_SIZE - 1) * 2; i += 2)
+	for (int i = 0; i < TETROMINO_MAX_SIZE; i++)
 	{
-		const int8_t offsetX = x + droppingTetrominoRotatedOffsets[i];
-		const int8_t offsetY = y + droppingTetrominoRotatedOffsets[i + 1];
-
-		// Check if the tetromino has collided with the arena
-		if (offsetX >= ARENA_WIDTH || offsetX < 0 || offsetY >= ARENA_HEIGHT || offsetY < 0) return true;
-
-		// Check if the tetromino has collided with another tetromino on the board
-		if (arena[offsetY][offsetX] != 0)
+		
+		for (int j = 0; j < TETROMINO_MAX_SIZE; j++)
 		{
-			//SDL_Log("Block @(%d,%d) collision!", offsetX, offsetY);
-			return true;
+			if (droppingTetrominoRotatedCoordinates[i][j] == false) continue;
+
+			const int offsetX = x + j;
+			const int offsetY = y + i;
+
+			printf("DT offset coords = (%d,%d)\n", offsetX, offsetY);
+
+			// Check if the tetromino has collided with the arena
+			if (offsetX >= ARENA_WIDTH || offsetX < 0 || offsetY >= ARENA_HEIGHT || offsetY < 0) return true;
+
+			// Check if the tetromino has collided with another tetromino on the board
+			if (arena[offsetY][offsetX] != 0)
+			{
+				//SDL_Log("Block @(%d,%d) collision!", offsetX, offsetY);
+				return true;
+			}
 		}
 	}
-
 	return false;
 }
 
@@ -91,7 +95,7 @@ void ResetDroppingTetromino(DroppingTetromino* droppingTetromino)
 	droppingTetromino->x = (ARENA_WIDTH - 1) / 2;
 	droppingTetromino->y = 0;
 	droppingTetromino->rotation = NORTH;
-	droppingTetromino->shape = *GetRandomTetrominoShape();
+	droppingTetromino->shape = *GetTetrominoShapeByIdentifier(I);//*GetRandomTetrominoShape();
 	droppingTetromino->terminate = false;
 }
 
@@ -111,12 +115,12 @@ static void DropRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], const
 }
 
 
-uint16_t ClearFilledRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH])
+int ClearFilledRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH])
 {
 	// Start scanning for filled rows from bottom of arena
 	for (int row = ARENA_HEIGHT - 1; row >= 0; row--)
 	{
-		// The number of grid squares that contain part of a tetromino in them
+		// The number of grid blocks that contain part of a tetromino in them
 		int gridFillCount = 0;
 		for (int col = 0; col < ARENA_WIDTH; col++)
 		{

@@ -2,6 +2,7 @@
 #define TETROMINO_H
 
 #include <SDL3/SDL.h>
+#include <stdbool.h>
 
 /* ENUMERATORS */
 enum Orientation
@@ -26,7 +27,7 @@ typedef enum
 enum
 {
 	TETROMINO_COUNT = 7, // How many different tetromino identifiers there are (how many shapes)
-	TETROMINO_SIZE = 4, // How many blocks constitute a tetromino
+	TETROMINO_MAX_SIZE = 4, // The maximum dimension of a tetromino block (i.e. how big the square matrix representation of a tetromino is)
 };
 
 /**
@@ -36,7 +37,7 @@ typedef struct TetrominoShape
 {
 	TetrominoIdentifier identifier;
 	SDL_Texture* texture;
-	uint8_t offsets[4][TETROMINO_SIZE * 2]; // 4 Orientations in 2D Space, 4 coordinate pairs for each constituent square
+	bool coordinates[4][TETROMINO_MAX_SIZE][TETROMINO_MAX_SIZE]; // 4 Orientations in 2D Space, and a 2D matrix representation
 } TetrominoShape;
 
 /**
@@ -44,8 +45,8 @@ typedef struct TetrominoShape
  */
 typedef struct DroppingTetromino
 {
-	int8_t x;
-	int8_t y;
+	int x;
+	int y;
 	enum Orientation rotation;
 	TetrominoShape shape;
 	bool terminate;
@@ -74,6 +75,6 @@ const TetrominoShape* GetRandomTetrominoShape(void);
  *
  * \returns True if success, false otherwise.
  */
-void RotateDroppingTetromino(DroppingTetromino* tetromino, int8_t rotationAmount);
+void RotateDroppingTetromino(DroppingTetromino* tetromino, int rotationAmount);
 
 #endif //TETROMINO_H

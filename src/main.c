@@ -161,11 +161,11 @@ SDL_AppResult SDL_AppIterate(void* appstate)
 	const AppState* state = (AppState*)appstate;
 
 	// Clear screen
-	SDL_SetRenderDrawColor(state->renderer, 0, 0, 0, 255);
+	SDL_SetRenderDrawColor(state->renderer, 17, 17, 17, 255);
 	SDL_RenderClear(state->renderer);
 
-	DrawArena(state->renderer, g_arena);
 	DrawDroppingTetromino(state->renderer, &g_droppingTetromino);
+	DrawArena(state->renderer, g_arena);
 
 	GameIteration(&g_droppingTetromino, g_arena);
 

@@ -23,7 +23,7 @@ bool GameIteration(DroppingTetromino* droppingTetromino,
  * @return True if the tetromino would collide, false otherwise.
  */
 bool CheckDroppingTetrominoCollision(const DroppingTetromino* droppingTetromino,
-                                     const TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], int8_t x, int8_t y);
+                                     const TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], int x, int y);
 
 /** Resets the attributed of the dropping tetromino, essentially "spawning" a new one on the board and deleting the old one.
  * 
@@ -37,7 +37,7 @@ void ResetDroppingTetromino(DroppingTetromino* droppingTetromino);
  * 
  * @return The score that should be awarded for clearing n rows.
  */
-uint16_t ClearFilledRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH]);
+int ClearFilledRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH]);
 
 /* Drops everything above this row by one.
  *

@@ -3,37 +3,19 @@
 #include <stdbool.h>
 
 #include "graphics.h"
-
-#include <stdio.h>
-
 #include "util.h"
 #include "tetromino.h"
 
 bool LoadResources(SDL_Renderer* renderer)
 {
-	char path[512];
-
 	// Load tetromino textures
-	//if (snprintf(path, sizeof(path), "%simages/squares/orange.png", RESOURCE_PATH) < 0) return false;
-	if (!(GetTetrominoShapeByIdentifier(I)->texture = IMG_LoadTexture(renderer, "resources/images/squares/orange.png"))) return false;
-
-	if (snprintf(path, sizeof(path), "%simages/squares/red.png", RESOURCE_PATH) < 0) return false;
-	if (!(GetTetrominoShapeByIdentifier(O)->texture = IMG_LoadTexture(renderer, path))) return false;
-
-	if (snprintf(path, sizeof(path), "%simages/squares/yellow.png", RESOURCE_PATH) < 0) return false;
-	if (!(GetTetrominoShapeByIdentifier(T)->texture = IMG_LoadTexture(renderer, path))) return false;
-
-	if (snprintf(path, sizeof(path), "%simages/squares/green.png", RESOURCE_PATH) < 0) return false;
-	if (!(GetTetrominoShapeByIdentifier(Z)->texture = IMG_LoadTexture(renderer, path))) return false;
-
-	if (snprintf(path, sizeof(path), "%simages/squares/cyan.png", RESOURCE_PATH) < 0) return false;
-	if (!(GetTetrominoShapeByIdentifier(S)->texture = IMG_LoadTexture(renderer, path))) return false;
-
-	if (snprintf(path, sizeof(path), "%simages/squares/blue.png", RESOURCE_PATH) < 0) return false;
-	if (!(GetTetrominoShapeByIdentifier(L)->texture = IMG_LoadTexture(renderer, path))) return false;
-
-	if (snprintf(path, sizeof(path), "%simages/squares/purple.png", RESOURCE_PATH) < 0) return false;
-	if (!(GetTetrominoShapeByIdentifier(J)->texture = IMG_LoadTexture(renderer, path))) return false;
+	if (!(GetTetrominoShapeByIdentifier(I)->texture = IMG_LoadTexture(renderer, "resources/images/blocks/orange.png"))) return false;
+	if (!(GetTetrominoShapeByIdentifier(O)->texture = IMG_LoadTexture(renderer, "resources/images/blocks/red.png"))) return false;
+	if (!(GetTetrominoShapeByIdentifier(T)->texture = IMG_LoadTexture(renderer, "resources/images/blocks/yellow.png"))) return false;
+	if (!(GetTetrominoShapeByIdentifier(Z)->texture = IMG_LoadTexture(renderer, "resources/images/blocks/green.png"))) return false;
+	if (!(GetTetrominoShapeByIdentifier(S)->texture = IMG_LoadTexture(renderer, "resources/images/blocks/cyan.png"))) return false;
+	if (!(GetTetrominoShapeByIdentifier(L)->texture = IMG_LoadTexture(renderer, "resources/images/blocks/blue.png"))) return false;
+	if (!(GetTetrominoShapeByIdentifier(J)->texture = IMG_LoadTexture(renderer, "resources/images/blocks/purple.png"))) return false;
 
 	return true;
 }
@@ -44,11 +26,11 @@ bool DrawArena(SDL_Renderer* renderer, const TetrominoIdentifier arena[ARENA_HEI
 	{
 		for (int col = 0; col < ARENA_WIDTH; col++)
 		{
-			// Draw filled squares
+			// Draw filled blocks
 			if (arena[row][col])
 			{
-				SDL_Texture* squareTexture = GetTetrominoShapeByIdentifier(arena[row][col])->texture;
-				DrawBlock(renderer, squareTexture, col, row);
+				SDL_Texture* blockTexture = GetTetrominoShapeByIdentifier(arena[row][col])->texture;
+				DrawBlock(renderer, blockTexture, col, row);
 			}
 
 			// Draw grid
@@ -64,7 +46,7 @@ bool DrawArena(SDL_Renderer* renderer, const TetrominoIdentifier arena[ARENA_HEI
 	return true;
 }
 
-bool DrawBlock(SDL_Renderer* renderer, SDL_Texture* texture, const int8_t x, const int8_t y)
+bool DrawBlock(SDL_Renderer* renderer, SDL_Texture* texture, const int x, const int y)
 {
 	// TODO Draw rendered image instead of drawing a square, it's much more performant - THIS NEEDS THE SDL_IMAGE LIBRARY. We need to figure out how to include this using cmake.
 	// TODO Instead of storing an RGB value in the tetromino structs, we can store a pointer to a surface that is generated from the images which we will load during init()
@@ -81,18 +63,23 @@ bool DrawBlock(SDL_Renderer* renderer, SDL_Texture* texture, const int8_t x, con
 bool DrawDroppingTetromino(SDL_Renderer* renderer, const DroppingTetromino* droppingTetromino)
 {
 	SDL_Texture* droppingTetrominoTexture = droppingTetromino->shape.texture;
-	const int8_t droppingTetrominoX = droppingTetromino->x;
-	const int8_t droppingTetrominoY = droppingTetromino->y;
-	const uint8_t* droppingTetrominoRotatedOffsets = droppingTetromino->shape.offsets[droppingTetromino->rotation];
+	const int droppingTetrominoX = droppingTetromino->x;
+	const int droppingTetrominoY = droppingTetromino->y;
+	const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = droppingTetromino->shape.coordinates[droppingTetromino->rotation];
 
 	// Iterate over the coordinate pairs of each block in the tetromino
-	for (int i = 0; i < TETROMINO_SIZE * 2; i += 2)
+	for (int i = 0; i < TETROMINO_MAX_SIZE; i++)
 	{
-		if (DrawBlock(renderer,
-		              droppingTetrominoTexture,
-		              droppingTetrominoX + droppingTetrominoRotatedOffsets[i],
-		              droppingTetrominoY + droppingTetrominoRotatedOffsets[i + 1]) == false)
-			return false;
+		for (int j = 0; j < TETROMINO_MAX_SIZE; j++)
+		{
+			if (droppingTetrominoRotatedCoordinates[i][j] == false) continue;
+
+			if (DrawBlock(renderer,
+				droppingTetrominoTexture,
+				droppingTetrominoX + j,
+				droppingTetrominoY + i) == false)
+				return false;
+		}
 	}
 
 	return true;

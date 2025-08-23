@@ -1,8 +1,6 @@
 #ifndef GRAPHICS_H
 #define GRAPHICS_H
 
-#include <stdint.h>
-
 #include "util.h"
 #include "../include/tetromino.h"
 
@@ -36,7 +34,7 @@ bool DrawArena(SDL_Renderer* renderer, const TetrominoIdentifier arena[ARENA_HEI
  *
  * \returns True if success, false otherwise.
  */
-bool DrawBlock(SDL_Renderer* renderer, SDL_Texture* texture, int8_t x, int8_t y);
+bool DrawBlock(SDL_Renderer* renderer, SDL_Texture* texture, int x, int y);
 
 /**
  * Draw an entire tetromino on the grid.
