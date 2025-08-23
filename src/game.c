@@ -11,7 +11,7 @@ bool GameIteration(DroppingTetromino* droppingTetromino,
 {
 
 	// Every n ticks, drop tetromino and run tetromino operations
-	const int speed = 300;
+	const int speed = 200;
 	static Uint64 oldTick = 0;
 
 	if (SDL_GetTicks() - oldTick >= speed)
@@ -62,8 +62,6 @@ bool CheckDroppingTetrominoTranslationCollision(const DroppingTetromino* droppin
 {
 	const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = droppingTetromino->shape.coordinates[droppingTetromino->rotation];
 
-	printf("DT @ (%d,%d)\n", droppingTetromino->x, droppingTetromino->y);
-
 	for (int i = 0; i < TETROMINO_MAX_SIZE; i++)
 	{
 		for (int j = 0; j < TETROMINO_MAX_SIZE; j++)
@@ -72,8 +70,6 @@ bool CheckDroppingTetrominoTranslationCollision(const DroppingTetromino* droppin
 
 			const int offsetX = x + j;
 			const int offsetY = y + i;
-
-			printf("DT offset coords = (%d,%d)\n", offsetX, offsetY);
 
 			// Check if the tetromino has collided with the arena
 			if (offsetX >= ARENA_WIDTH || offsetX < 0 || offsetY >= ARENA_HEIGHT || offsetY < 0) return true;
@@ -125,17 +121,17 @@ void ResetDroppingTetromino(DroppingTetromino* droppingTetromino)
 	droppingTetromino->terminate = false;
 }
 
-/* Drops everything above this row by one
+/* Drops everything above this row by drop amount
  *
 */
-static void DropRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], const int dropToRow)
+static void DropRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], const int dropToRow, const int dropAmount)
 {
 	// Start scanning for filled rows from bottom of arena
 	for (int row = dropToRow; row > 0; row--)
 	{
 		for (int col = 0; col < ARENA_WIDTH; col++)
 		{
-			arena[row][col] = arena[row - 1][col];
+			arena[row][col] = arena[row - dropAmount][col];
 		}
 	}
 }
@@ -143,30 +139,59 @@ static void DropRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], const
 
 int ClearFilledRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH])
 {
-	// Start scanning for filled rows from bottom of arena
-	for (int row = ARENA_HEIGHT - 1; row >= 0; row--)
+	// Number of sequential rows that have been filled
+	int numFilledRows = 0;
+
+	int bottomPointer = ARENA_HEIGHT - 1;
+	int topPointer = ARENA_HEIGHT - 2;
+
+	while (topPointer < bottomPointer && topPointer >= 0)
 	{
-		// The number of grid blocks that contain part of a tetromino in them
-		int gridFillCount = 0;
+		int bottomPointerSquareCount = 0;
+		int topPointerSquareCount = 0;
+
 		for (int col = 0; col < ARENA_WIDTH; col++)
 		{
-			if (arena[row][col] != 0) gridFillCount++;
+			if (arena[bottomPointer][col] != 0) bottomPointerSquareCount++;
+			if (arena[topPointer][col] != 0) topPointerSquareCount++;
 		}
 
-		// If we encounter an empty row while scanning upwards, then there can't be a filled row above that point
-		if (gridFillCount == 0)
+		if (topPointerSquareCount < ARENA_WIDTH && bottomPointerSquareCount < ARENA_WIDTH)
 		{
+			//printf("SPECIAL POINTS AWARDED: %d\n", 0);
+			//printf("Bottom pointer: %d\n", bottomPointer);
+			//printf("Top pointer: %d\n", topPointer);
+			topPointer--;
+			bottomPointer--;
+			continue;
+		}
+
+		if (topPointerSquareCount >= ARENA_WIDTH)
+		{ 
+			topPointer--;
+		}
+		else
+		{
+			numFilledRows = bottomPointer - topPointer;
 			break;
 		}
 
-		if (gridFillCount >= ARENA_WIDTH)
+		if (bottomPointerSquareCount < ARENA_WIDTH)
 		{
-			// Clear row
-			memset(arena[row], 0, ARENA_WIDTH);
-			DropRows(arena, row);
+			bottomPointer--;
 		}
-		// TODO Maybe change the colour of the row 1 frame before we delete it, as some sort of animation?
 	}
 
-	return 0;
+	// Maximum of 4000 points for sequential line clears
+	const int points = ((numFilledRows < 4) ? numFilledRows : 4) * 1000;
+	printf("SPECIAL POINTS AWARDED: %d\n", points);
+
+	// Clear the cleared rows and drop the rows above
+	for (int row = bottomPointer; row <= topPointer; row--)
+	{
+		memset(arena[row], 0, ARENA_WIDTH);
+	}
+	DropRows(arena, bottomPointer, bottomPointer - topPointer);
+
+	return points;
 }
