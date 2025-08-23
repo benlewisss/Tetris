@@ -164,7 +164,10 @@ SDL_AppResult SDL_AppIterate(void* appstate)
 	SDL_SetRenderDrawColor(state->renderer, 0, 0, 0, 255);
 	SDL_RenderClear(state->renderer);
 
-	GameIteration(state->renderer, &g_droppingTetromino, g_arena);
+	DrawArena(state->renderer, g_arena);
+	DrawDroppingTetromino(state->renderer, &g_droppingTetromino);
+
+	GameIteration(&g_droppingTetromino, g_arena);
 
 	// int width, height;
 	// SDL_GetWindowSize(state->window, &width, &height);

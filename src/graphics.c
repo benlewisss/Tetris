@@ -14,8 +14,8 @@ bool LoadResources(SDL_Renderer* renderer)
 	char path[512];
 
 	// Load tetromino textures
-	if (snprintf(path, sizeof(path), "%simages/squares/orange.png", RESOURCE_PATH) < 0) return false;
-	if (!(GetTetrominoShapeByIdentifier(I)->texture = IMG_LoadTexture(renderer, path))) return false;
+	//if (snprintf(path, sizeof(path), "%simages/squares/orange.png", RESOURCE_PATH) < 0) return false;
+	if (!(GetTetrominoShapeByIdentifier(I)->texture = IMG_LoadTexture(renderer, "resources/images/squares/orange.png"))) return false;
 
 	if (snprintf(path, sizeof(path), "%simages/squares/red.png", RESOURCE_PATH) < 0) return false;
 	if (!(GetTetrominoShapeByIdentifier(O)->texture = IMG_LoadTexture(renderer, path))) return false;
@@ -52,7 +52,7 @@ bool DrawArena(SDL_Renderer* renderer, const TetrominoIdentifier arena[ARENA_HEI
 			}
 
 			// Draw grid
-			SDL_SetRenderDrawColor(renderer, 64, 64, 64, 255); // Grey
+			SDL_SetRenderDrawColor(renderer, 32, 32, 32, 255); // Grey
 			SDL_FRect rect = {(float)col * BLOCK_SIZE, (float)row * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE};
 			if (SDL_RenderRect(renderer, &rect) == false)
 				return false;

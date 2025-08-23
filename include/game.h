@@ -3,15 +3,14 @@
 
 #include "util.h"
 #include "tetromino.h"
-/** The method handling all the game logic and graphics calls that should happen each frame.
+/** The method handling all the game logic that should happen each frame
  * 
- * @param renderer A pointer to the SDL renderer object.
  * @param droppingTetromino A pointer to the dropping tetromino object.
  * @param arena The matrix representation of the tetris arena.
  * 
  * @return True if success, false otherwise.
  */
-bool GameIteration(SDL_Renderer* renderer, DroppingTetromino* droppingTetromino,
+bool GameIteration(DroppingTetromino* droppingTetromino,
                    TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH]);
 
 /** Checks whether the dropping tetromino object would collide at some given coordinates.

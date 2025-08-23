@@ -3,15 +3,12 @@
 #include "tetromino.h"
 #include "graphics.h"
 
-bool GameIteration(SDL_Renderer* renderer, DroppingTetromino* droppingTetromino,
+bool GameIteration(DroppingTetromino* droppingTetromino,
                    TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH])
 {
-	DrawArena(renderer, arena);
-
-	DrawDroppingTetromino(renderer, droppingTetromino);
 
 	// Every n ticks, drop tetromino and run tetromino operations
-	const uint16_t speed = 200;
+	const uint16_t speed = 500;
 	static Uint64 oldTick = 0;
 
 	if (SDL_GetTicks() - oldTick >= speed)
