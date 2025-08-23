@@ -29,8 +29,31 @@ typedef struct
 	bool isRunning;
 } AppState;
 
-static TetrominoIdentifier g_arena[ARENA_HEIGHT][ARENA_WIDTH] = {{0}};
+//static TetrominoIdentifier g_arena[ARENA_HEIGHT][ARENA_WIDTH] = {{0}};
 static DroppingTetromino g_droppingTetromino;
+
+// DEBUG Purposes 
+static TetrominoIdentifier g_arena[ARENA_HEIGHT][ARENA_WIDTH] = {
+{0,0,0,0,0,0,0,0,0,0},
+{0,0,0,0,0,0,0,0,0,0},
+{0,0,0,0,0,0,0,0,0,0},
+{0,0,0,0,0,0,0,0,0,0},
+{0,0,0,0,0,0,0,0,0,0},
+{0,0,0,0,0,0,0,0,0,0},
+{0,0,0,0,0,0,0,0,0,0},
+{0,0,0,0,0,0,0,0,0,0},
+{0,0,0,0,0,0,0,0,0,0},
+{0,0,0,0,0,0,0,0,0,0},
+{0,0,0,0,0,0,0,0,0,0},
+{0,0,0,0,0,0,0,0,0,0},
+{0,0,0,0,0,0,0,0,0,0},
+{0,0,0,0,1,1,0,0,0,0},
+{0,0,0,0,0,1,1,1,0,0},
+{0,0,0,0,0,0,1,1,1,1},
+{0,1,1,1,0,0,0,1,1,1},
+{1,1,0,0,0,0,1,1,1,1},
+{1,1,1,1,0,0,1,1,1,1},
+{1,1,1,1,1,0,1,1,1,1}, };
 
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 {
@@ -109,19 +132,19 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
 		{
 		case SDLK_D:
 		case SDLK_RIGHT:
-			if (!CheckDroppingTetrominoTranslationCollision(&g_droppingTetromino, g_arena, g_droppingTetromino.x + 1, g_droppingTetromino.y)) g_droppingTetromino.x++;
+			if (!CheckDroppingTetrominoCollision(g_arena, &g_droppingTetromino, 1, 0, 0)) g_droppingTetromino.x++;
 			break;
 		case SDLK_A:
 		case SDLK_LEFT:
-			if (!CheckDroppingTetrominoTranslationCollision(&g_droppingTetromino, g_arena, g_droppingTetromino.x - 1, g_droppingTetromino.y)) g_droppingTetromino.x--;
+			if (!CheckDroppingTetrominoCollision(g_arena, &g_droppingTetromino, -1, 0, 0)) g_droppingTetromino.x--;
 			break;
 		case SDLK_W:
 		case SDLK_UP:
-			if (!CheckDroppingTetrominoRotationCollision(&g_droppingTetromino, g_arena, 1)) RotateDroppingTetromino(&g_droppingTetromino, 1);
+			if (!CheckDroppingTetrominoCollision(g_arena, &g_droppingTetromino, 0, 0, 1)) RotateDroppingTetromino(&g_droppingTetromino, 1);
 			break;
 		case SDLK_S:
 		case SDLK_DOWN:
-			if (!CheckDroppingTetrominoRotationCollision(&g_droppingTetromino, g_arena, -1)) RotateDroppingTetromino(&g_droppingTetromino, -1);
+			if (!CheckDroppingTetrominoCollision(g_arena, &g_droppingTetromino, 0, 0, -1)) RotateDroppingTetromino(&g_droppingTetromino, -1);
 			break;
 		default:
 			break;
@@ -161,7 +184,7 @@ SDL_AppResult SDL_AppIterate(void* appstate)
 	DrawDroppingTetromino(state->renderer, &g_droppingTetromino);
 	DrawArena(state->renderer, g_arena);
 
-	GameIteration(&g_droppingTetromino, g_arena);
+	GameIteration(g_arena, &g_droppingTetromino);
 
 	// int width, height;
 	// SDL_GetWindowSize(state->window, &width, &height);

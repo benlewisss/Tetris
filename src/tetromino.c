@@ -185,10 +185,10 @@ const TetrominoShape* GetRandomTetrominoShape(void)
 	return GetTetrominoShapeByIdentifier(identifier);
 }
 
-void RotateDroppingTetromino(DroppingTetromino* tetromino, const int rotationAmount)
+void RotateDroppingTetromino(DroppingTetromino* droppingTetromino, const int rotationAmount)
 {
 	// TODO Is the following the most efficient way to do this? (No, maybe just use If statements to handle the negatives)
-	const enum Orientation newDirection = (((tetromino->rotation + rotationAmount) % 4) + 4) % 4;
+	const enum Orientation newDirection = (((droppingTetromino->rotation + rotationAmount) % 4) + 4) % 4;
 	// Cant do negative modulo operations in C
-	tetromino->rotation = newDirection;
+	droppingTetromino->rotation = newDirection;
 }

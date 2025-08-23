@@ -5,34 +5,26 @@
 #include "tetromino.h"
 /** The method handling all the game logic that should happen each frame
  * 
- * @param droppingTetromino A pointer to the dropping tetromino object.
  * @param arena The matrix representation of the tetris arena.
+ * @param droppingTetromino A pointer to the dropping tetromino object.
  * 
  * @return True if success, false otherwise.
  */
-bool GameIteration(DroppingTetromino* droppingTetromino,
-                   TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH]);
+bool GameIteration(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH],
+                   DroppingTetromino* droppingTetromino);
 
-/** Checks whether the dropping tetromino object would collide at some given coordinates.
- * 
- * @param droppingTetromino A pointer to the dropping tetromino object.
- * @param arena The matrix representation of the tetris arena.
- * @param x The theoretical x-coordinate of the dropping tetromino.
- * @param y The theoretical y-coordinate of the dropping tetromino.
- * 
- * @return True if the tetromino would collide, false otherwise.
- */
-bool CheckDroppingTetrominoTranslationCollision(const DroppingTetromino* droppingTetromino, const TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], int x, int y);
 
 /** Checks whether the dropping tetromino object would collide at some given rotation
  *
- * @param droppingTetromino A pointer to the dropping tetromino object.
  * @param arena The matrix representation of the tetris arena.
+ * @param droppingTetromino A pointer to the dropping tetromino object.
+ * @param translationX The theoretical translation of the dropping tetromino on the X plane.
+ * @param translationY The theoretical translation of the dropping tetromino on the Y plane.
  * @param rotationAmount The theoretical rotation amount of the dropping tetromino.
  *
  * @return True if the tetromino would collide, false otherwise.
  */
-bool CheckDroppingTetrominoRotationCollision(const DroppingTetromino* droppingTetromino, const TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], int rotationAmount);
+bool CheckDroppingTetrominoCollision(const TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], const DroppingTetromino* droppingTetromino, int translationX, int translationY, const int rotationAmount);
 
 /** Resets the attributed of the dropping tetromino, essentially "spawning" a new one on the board and deleting the old one.
  * 
@@ -52,5 +44,13 @@ int ClearFilledRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH]);
  *
 */
 static void DropRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], int dropToRow, int dropAmount);
+
+/** IMPORTANT: This needs to be renamed to something befitting of its function to differentiate it from the rotating function in tetromino.c, this one abstracts a lot more game logic.
+ * Maybe rename the other one?
+ * 
+ * @param droppingTetromino 
+ * @param rotationAmount 
+ */
+void WallKickRotateDroppingTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], DroppingTetromino* droppingTetromino, const int rotationAmount);
 
 #endif //GAME_H

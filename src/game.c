@@ -1,25 +1,23 @@
 #include "game.h"
 
-#include <stdio.h>
-
 #include "util.h"
 #include "tetromino.h"
-#include "graphics.h"
 
-bool GameIteration(DroppingTetromino* droppingTetromino,
-                   TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH])
+bool GameIteration(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH],
+                   DroppingTetromino* droppingTetromino)
 {
+	static int score = 0;
 
 	// Every n ticks, drop tetromino and run tetromino operations
-	const int speed = 200;
+	const int speed = 750;
 	static Uint64 oldTick = 0;
 
 	if (SDL_GetTicks() - oldTick >= speed)
 	{
-		ClearFilledRows(arena);
+		score += ClearFilledRows(arena);
 
 		// Check if dropping tetromino has connected with ground or another block, and mark for termination
-		if (CheckDroppingTetrominoTranslationCollision(droppingTetromino, arena, droppingTetromino->x, droppingTetromino->y + 1) == true)
+		if (CheckDroppingTetrominoCollision(arena, droppingTetromino, 0, 1, 0) == true)
 		{
 			const int droppingTetrominoX = droppingTetromino->x;
 			const int droppingTetrominoY = droppingTetromino->y;
@@ -30,13 +28,9 @@ bool GameIteration(DroppingTetromino* droppingTetromino,
 			{
 				for (int j = 0; j < TETROMINO_MAX_SIZE; j++)
 				{
-					printf("%d ", droppingTetrominoRotatedCoordinates[i][j]);
-
 					if (droppingTetrominoRotatedCoordinates[i][j] == false) continue;
-					
 					arena[droppingTetrominoY + i][droppingTetrominoX + j] = droppingTetromino->shape.identifier;
 				}
-				printf("\n");
 			}
 
 			// If the dropping tetromino in the previous iteration is marked for termination, that means we must replace it
@@ -50,53 +44,24 @@ bool GameIteration(DroppingTetromino* droppingTetromino,
 		oldTick = SDL_GetTicks();
 	}
 
-	// Check if a row is filled and destroy it, increment score
-
 	return true;
 }
 
-bool CheckDroppingTetrominoTranslationCollision(const DroppingTetromino* droppingTetromino,
-                                     const TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH],
-                                     const int x, 
-                                     const int y)
-{
-	const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = droppingTetromino->shape.coordinates[droppingTetromino->rotation];
-
-	for (int i = 0; i < TETROMINO_MAX_SIZE; i++)
-	{
-		for (int j = 0; j < TETROMINO_MAX_SIZE; j++)
-		{
-			if (droppingTetrominoRotatedCoordinates[i][j] == false) continue;
-
-			const int offsetX = x + j;
-			const int offsetY = y + i;
-
-			// Check if the tetromino has collided with the arena
-			if (offsetX >= ARENA_WIDTH || offsetX < 0 || offsetY >= ARENA_HEIGHT || offsetY < 0) return true;
-
-			// Check if the tetromino has collided with another tetromino on the board
-			if (arena[offsetY][offsetX] != 0)
-			{
-				//SDL_Log("Block @(%d,%d) collision!", offsetX, offsetY);
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
-bool CheckDroppingTetrominoRotationCollision(const DroppingTetromino* droppingTetromino, const TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], const int rotationAmount)
+bool CheckDroppingTetrominoCollision(const TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], const DroppingTetromino* droppingTetromino, int translationX, int translationY, const int rotationAmount)
 {
 	const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = droppingTetromino->shape.coordinates[(((droppingTetromino->rotation + rotationAmount) % 4) + 4) % 4];
 
+	translationX += droppingTetromino->x;
+	translationY += droppingTetromino->y;
+
 	for (int i = 0; i < TETROMINO_MAX_SIZE; i++)
 	{
 		for (int j = 0; j < TETROMINO_MAX_SIZE; j++)
 		{
 			if (droppingTetrominoRotatedCoordinates[i][j] == false) continue;
 
-			const int offsetX = droppingTetromino->x + j;
-			const int offsetY = droppingTetromino->y + i;
+			const int offsetX = translationX + j;
+			const int offsetY = translationY + i;
 
 			// Check if the tetromino has collided with the arena
 			if (offsetX >= ARENA_WIDTH || offsetX < 0 || offsetY >= ARENA_HEIGHT || offsetY < 0) return true;
@@ -104,11 +69,11 @@ bool CheckDroppingTetrominoRotationCollision(const DroppingTetromino* droppingTe
 			// Check if the tetromino has collided with another tetromino on the board
 			if (arena[offsetY][offsetX] != 0)
 			{
-				//SDL_Log("Block @(%d,%d) collision!", offsetX, offsetY);
 				return true;
 			}
 		}
 	}
+
 	return false;
 }
 
@@ -117,7 +82,7 @@ void ResetDroppingTetromino(DroppingTetromino* droppingTetromino)
 	droppingTetromino->x = (ARENA_WIDTH - 1) / 2;
 	droppingTetromino->y = 0;
 	droppingTetromino->rotation = NORTH;
-	droppingTetromino->shape = *GetTetrominoShapeByIdentifier(I);//*GetRandomTetrominoShape();
+	droppingTetromino->shape = *GetTetrominoShapeByIdentifier(J);//*GetRandomTetrominoShape();
 	droppingTetromino->terminate = false;
 }
 
@@ -129,19 +94,24 @@ static void DropRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], const
 	// Start scanning for filled rows from bottom of arena
 	for (int row = dropToRow; row > 0; row--)
 	{
+		int squareCount = 0;
 		for (int col = 0; col < ARENA_WIDTH; col++)
 		{
+			if (arena[row][col] != 0) squareCount++;
 			arena[row][col] = arena[row - dropAmount][col];
 		}
+
+		// If we reach an empty row, then nothing above it to drop down
+		if (squareCount == 0) break;
 	}
 }
-
 
 int ClearFilledRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH])
 {
 	// Number of sequential rows that have been filled
 	int numFilledRows = 0;
 
+	// Sliding window technique
 	int bottomPointer = ARENA_HEIGHT - 1;
 	int topPointer = ARENA_HEIGHT - 2;
 
@@ -158,9 +128,6 @@ int ClearFilledRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH])
 
 		if (topPointerSquareCount < ARENA_WIDTH && bottomPointerSquareCount < ARENA_WIDTH)
 		{
-			//printf("SPECIAL POINTS AWARDED: %d\n", 0);
-			//printf("Bottom pointer: %d\n", bottomPointer);
-			//printf("Top pointer: %d\n", topPointer);
 			topPointer--;
 			bottomPointer--;
 			continue;
@@ -182,10 +149,6 @@ int ClearFilledRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH])
 		}
 	}
 
-	// Maximum of 4000 points for sequential line clears
-	const int points = ((numFilledRows < 4) ? numFilledRows : 4) * 1000;
-	printf("SPECIAL POINTS AWARDED: %d\n", points);
-
 	// Clear the cleared rows and drop the rows above
 	for (int row = bottomPointer; row <= topPointer; row--)
 	{
@@ -193,5 +156,16 @@ int ClearFilledRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH])
 	}
 	DropRows(arena, bottomPointer, bottomPointer - topPointer);
 
-	return points;
+	return numFilledRows * 1000;
+}
+
+void WallKickRotateDroppingTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], DroppingTetromino* droppingTetromino, const int rotationAmount)
+{
+	//// I think the best way is to store the Wall Kick Data (the 2d array can be found at https://tetris.wiki/Super_Rotation_System) as a 2D array of coordinate pairs (so 3D array), which is accessed here.
+	//if (rotationAmount == -1)
+	//{
+	//	if (CheckDroppingTetrominoRotationCollision(arena, droppingTetromino,))
+	//}
+
+	//RotateDroppingTetromino(DroppingTetromino)
 }
