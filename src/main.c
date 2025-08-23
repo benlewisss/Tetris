@@ -109,25 +109,19 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
 		{
 		case SDLK_D:
 		case SDLK_RIGHT:
-			if (!CheckDroppingTetrominoCollision(&g_droppingTetromino, g_arena, g_droppingTetromino.x + 1,
-			                                     g_droppingTetromino.y)) g_droppingTetromino.x++;
+			if (!CheckDroppingTetrominoTranslationCollision(&g_droppingTetromino, g_arena, g_droppingTetromino.x + 1, g_droppingTetromino.y)) g_droppingTetromino.x++;
 			break;
 		case SDLK_A:
 		case SDLK_LEFT:
-			if (!CheckDroppingTetrominoCollision(&g_droppingTetromino, g_arena, g_droppingTetromino.x - 1,
-			                                     g_droppingTetromino.y)) g_droppingTetromino.x--;
+			if (!CheckDroppingTetrominoTranslationCollision(&g_droppingTetromino, g_arena, g_droppingTetromino.x - 1, g_droppingTetromino.y)) g_droppingTetromino.x--;
 			break;
 		case SDLK_W:
-		case SDLK_UP: // TODO There's a BIG bug where you can rotate at the edges and clip into the sides
-			if (!CheckDroppingTetrominoCollision(&g_droppingTetromino, g_arena, g_droppingTetromino.x + 1,
-			                                     g_droppingTetromino.y)) RotateDroppingTetromino(
-				&g_droppingTetromino, 1);
+		case SDLK_UP:
+			if (!CheckDroppingTetrominoRotationCollision(&g_droppingTetromino, g_arena, 1)) RotateDroppingTetromino(&g_droppingTetromino, 1);
 			break;
 		case SDLK_S:
 		case SDLK_DOWN:
-			if (!CheckDroppingTetrominoCollision(&g_droppingTetromino, g_arena, g_droppingTetromino.x - 1,
-			                                     g_droppingTetromino.y)) RotateDroppingTetromino(
-				&g_droppingTetromino, -1);
+			if (!CheckDroppingTetrominoRotationCollision(&g_droppingTetromino, g_arena, -1)) RotateDroppingTetromino(&g_droppingTetromino, -1);
 			break;
 		default:
 			break;

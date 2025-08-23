@@ -19,7 +19,7 @@ bool GameIteration(DroppingTetromino* droppingTetromino,
 		ClearFilledRows(arena);
 
 		// Check if dropping tetromino has connected with ground or another block, and mark for termination
-		if (CheckDroppingTetrominoCollision(droppingTetromino, arena, droppingTetromino->x, droppingTetromino->y + 1) == true)
+		if (CheckDroppingTetrominoTranslationCollision(droppingTetromino, arena, droppingTetromino->x, droppingTetromino->y + 1) == true)
 		{
 			const int droppingTetrominoX = droppingTetromino->x;
 			const int droppingTetrominoY = droppingTetromino->y;
@@ -55,7 +55,7 @@ bool GameIteration(DroppingTetromino* droppingTetromino,
 	return true;
 }
 
-bool CheckDroppingTetrominoCollision(const DroppingTetromino* droppingTetromino,
+bool CheckDroppingTetrominoTranslationCollision(const DroppingTetromino* droppingTetromino,
                                      const TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH],
                                      const int x, 
                                      const int y)
@@ -66,7 +66,6 @@ bool CheckDroppingTetrominoCollision(const DroppingTetromino* droppingTetromino,
 
 	for (int i = 0; i < TETROMINO_MAX_SIZE; i++)
 	{
-		
 		for (int j = 0; j < TETROMINO_MAX_SIZE; j++)
 		{
 			if (droppingTetrominoRotatedCoordinates[i][j] == false) continue;
@@ -75,6 +74,33 @@ bool CheckDroppingTetrominoCollision(const DroppingTetromino* droppingTetromino,
 			const int offsetY = y + i;
 
 			printf("DT offset coords = (%d,%d)\n", offsetX, offsetY);
+
+			// Check if the tetromino has collided with the arena
+			if (offsetX >= ARENA_WIDTH || offsetX < 0 || offsetY >= ARENA_HEIGHT || offsetY < 0) return true;
+
+			// Check if the tetromino has collided with another tetromino on the board
+			if (arena[offsetY][offsetX] != 0)
+			{
+				//SDL_Log("Block @(%d,%d) collision!", offsetX, offsetY);
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+bool CheckDroppingTetrominoRotationCollision(const DroppingTetromino* droppingTetromino, const TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], const int rotationAmount)
+{
+	const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = droppingTetromino->shape.coordinates[(((droppingTetromino->rotation + rotationAmount) % 4) + 4) % 4];
+
+	for (int i = 0; i < TETROMINO_MAX_SIZE; i++)
+	{
+		for (int j = 0; j < TETROMINO_MAX_SIZE; j++)
+		{
+			if (droppingTetrominoRotatedCoordinates[i][j] == false) continue;
+
+			const int offsetX = droppingTetromino->x + j;
+			const int offsetY = droppingTetromino->y + i;
 
 			// Check if the tetromino has collided with the arena
 			if (offsetX >= ARENA_WIDTH || offsetX < 0 || offsetY >= ARENA_HEIGHT || offsetY < 0) return true;

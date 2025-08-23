@@ -22,8 +22,17 @@ bool GameIteration(DroppingTetromino* droppingTetromino,
  * 
  * @return True if the tetromino would collide, false otherwise.
  */
-bool CheckDroppingTetrominoCollision(const DroppingTetromino* droppingTetromino,
-                                     const TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], int x, int y);
+bool CheckDroppingTetrominoTranslationCollision(const DroppingTetromino* droppingTetromino, const TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], int x, int y);
+
+/** Checks whether the dropping tetromino object would collide at some given rotation
+ *
+ * @param droppingTetromino A pointer to the dropping tetromino object.
+ * @param arena The matrix representation of the tetris arena.
+ * @param rotationAmount The theoretical rotation amount of the dropping tetromino.
+ *
+ * @return True if the tetromino would collide, false otherwise.
+ */
+bool CheckDroppingTetrominoRotationCollision(const DroppingTetromino* droppingTetromino, const TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], int rotationAmount);
 
 /** Resets the attributed of the dropping tetromino, essentially "spawning" a new one on the board and deleting the old one.
  * 
