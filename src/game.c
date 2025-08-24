@@ -9,7 +9,7 @@ bool GameIteration(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH],
                    DroppingTetromino* droppingTetromino)
 {
 	static int score = 0;
-	static int level = 5;
+	static int level = 2;
 
 	// The time to drop a tetromino one cell (i.e. speed) for each of the tetris levels (where the index is the level
 	static Uint64 gravityValues[20] = {1000, 793, 618, 473, 355, 262, 190, 135, 94, 64, 43, 28, 18, 11, 7, 5, 4, 3, 2, 1};
@@ -21,13 +21,12 @@ bool GameIteration(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH],
 	{
 		score += ClearFilledRows(arena);
 
-		// Check if dropping tetromino has connected with ground or another block, and mark for termination
+		// Check if dropping tetromino has connected with ground or another block
 		if (CheckDroppingTetrominoCollision(arena, droppingTetromino, 0, 1, 0) == true)
 		{
 			const int droppingTetrominoX = droppingTetromino->x;
 			const int droppingTetrominoY = droppingTetromino->y;
-			const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = droppingTetromino->shape.coordinates[
-				droppingTetromino->rotation];
+			const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = droppingTetromino->shape.coordinates[droppingTetromino->rotation];
 
 			// Update the arena with the location of the tetromino where it has collided
 			for (int i = 0; i < TETROMINO_MAX_SIZE; i++)
@@ -250,4 +249,12 @@ bool WallKickRotateDroppingTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARE
 	}
 
 	return false;
+}
+
+void HardDropTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], DroppingTetromino* droppingTetromino)
+{
+	while (!CheckDroppingTetrominoCollision(arena, droppingTetromino, 0, 1, 0))
+	{
+		droppingTetromino->y++;
+	}
 }

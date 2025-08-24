@@ -143,12 +143,14 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
 			break;
 		case SDLK_W:
 		case SDLK_UP:
-			if (!CheckDroppingTetrominoCollision(g_arena, &g_droppingTetromino, 0, 0, 1)) RotateDroppingTetromino(&g_droppingTetromino, 1);
+			WallKickRotateDroppingTetromino(g_arena, &g_droppingTetromino, 1);
 			break;
 		case SDLK_S:
 		case SDLK_DOWN:
-			//if (!CheckDroppingTetrominoCollision(g_arena, &g_droppingTetromino, 0, 0, -1)) RotateDroppingTetromino(&g_droppingTetromino, -1);
 			WallKickRotateDroppingTetromino(g_arena, &g_droppingTetromino, -1);
+			break;
+		case SDLK_SPACE:
+			HardDropTetromino(g_arena, &g_droppingTetromino);
 			break;
 		default:
 			break;
