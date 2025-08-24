@@ -29,31 +29,31 @@ typedef struct
 	bool isRunning;
 } AppState;
 
-//static TetrominoIdentifier g_arena[ARENA_HEIGHT][ARENA_WIDTH] = {{0}};
+static TetrominoIdentifier g_arena[ARENA_HEIGHT][ARENA_WIDTH] = {{0}};
 static DroppingTetromino g_droppingTetromino;
 
-// DEBUG Purposes 
-static TetrominoIdentifier g_arena[ARENA_HEIGHT][ARENA_WIDTH] = {
-{0,0,0,0,0,0,0,0,0,0},
-{0,0,0,0,0,0,0,0,0,0},
-{0,0,0,0,0,0,0,0,0,0},
-{0,0,0,0,0,0,0,0,0,0},
-{0,0,0,0,0,0,0,0,0,0},
-{0,0,0,0,0,0,0,0,0,0},
-{0,0,0,0,0,0,0,0,0,0},
-{0,0,0,0,0,0,0,0,0,0},
-{0,0,0,0,0,0,0,0,0,0},
-{0,0,0,0,0,0,0,0,0,0},
-{0,0,0,0,0,0,0,0,0,0},
-{0,0,0,0,0,0,0,0,0,0},
-{0,0,0,0,0,0,0,0,0,0},
-{0,0,0,0,1,1,0,0,0,0},
-{0,0,0,0,0,1,1,1,0,0},
-{0,0,0,0,0,0,1,1,1,1},
-{0,1,1,1,0,0,0,1,1,1},
-{1,1,0,0,0,0,1,1,1,1},
-{1,1,1,1,0,0,1,1,1,1},
-{1,1,1,1,1,0,1,1,1,1}, };
+//// DEBUG Purposes 
+//static TetrominoIdentifier g_arena[ARENA_HEIGHT][ARENA_WIDTH] = {
+//{0,0,0,0,0,0,0,0,0,0},
+//{0,0,0,0,0,0,0,0,0,0},
+//{0,0,0,0,0,0,0,0,0,0},
+//{0,0,0,0,0,0,0,0,0,0},
+//{0,0,0,0,0,0,0,0,0,0},
+//{0,0,0,0,0,0,0,0,0,0},
+//{0,0,0,0,0,0,0,0,0,0},
+//{0,0,0,0,0,0,0,0,0,0},
+//{0,0,0,0,0,0,0,0,0,0},
+//{0,0,0,0,0,0,0,0,0,0},
+//{0,0,0,0,0,0,0,0,0,0},
+//{0,0,0,0,0,0,0,0,0,0},
+//{0,0,0,0,0,0,0,0,0,0},
+//{0,0,0,0,1,1,0,0,0,0},
+//{0,0,0,0,0,1,1,1,0,0},
+//{0,0,0,0,0,0,1,1,1,1},
+//{0,1,1,1,0,0,0,1,1,1},
+//{1,1,0,0,0,0,1,1,1,1},
+//{1,1,1,1,0,0,1,1,1,1},
+//{1,1,1,1,1,0,1,1,1,1}, };
 
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 {
@@ -114,6 +114,9 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
 {
 	AppState* state = appstate;
+
+	// TODO Fix delay after key repetition https://lazyfoo.net/tutorials/SDL/18_key_states/index.php
+	// https://stackoverflow.com/questions/21311824/sdl2-key-repeat-delay
 
 	switch (event->type)
 	{

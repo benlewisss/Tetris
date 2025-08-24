@@ -9,12 +9,15 @@ bool GameIteration(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH],
                    DroppingTetromino* droppingTetromino)
 {
 	static int score = 0;
+	static int level = 5;
+
+	// The time to drop a tetromino one cell (i.e. speed) for each of the tetris levels (where the index is the level
+	static Uint64 gravityValues[20] = {1000, 793, 618, 473, 355, 262, 190, 135, 94, 64, 43, 28, 18, 11, 7, 5, 4, 3, 2, 1};
 
 	// Every n ticks, drop tetromino and run tetromino operations
-	const int speed = 300;
 	static Uint64 oldTick = 0;
 
-	if (SDL_GetTicks() - oldTick >= speed)
+	if (SDL_GetTicks() - oldTick >= gravityValues[level])
 	{
 		score += ClearFilledRows(arena);
 
