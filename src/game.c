@@ -1,6 +1,6 @@
 #include "game.h"
 
-#include <assert.h>
+#include <stdlib.h>
 
 #include "util.h"
 #include "tetromino.h"
@@ -11,7 +11,7 @@ bool GameIteration(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH],
 	static int score = 0;
 
 	// Every n ticks, drop tetromino and run tetromino operations
-	const int speed = 1000;
+	const int speed = 300;
 	static Uint64 oldTick = 0;
 
 	if (SDL_GetTicks() - oldTick >= speed)

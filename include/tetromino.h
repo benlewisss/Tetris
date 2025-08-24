@@ -77,4 +77,6 @@ const TetrominoShape* GetRandomTetrominoShape(void);
  */
 void RotateDroppingTetromino(DroppingTetromino* droppingTetromino, int rotationAmount);
 
+static void Shuffle(int* array, size_t n);
+
 #endif //TETROMINO_H

@@ -2,6 +2,8 @@
 
 #include "tetromino.h"
 
+#include <stdlib.h>
+
 TetrominoShape* GetTetrominoShapeByIdentifier(const TetrominoIdentifier identifier)
 {
 	// Tetromino shape and color declarations
@@ -175,14 +177,26 @@ TetrominoShape* GetTetrominoShapeByIdentifier(const TetrominoIdentifier identifi
 	};
 
 	// Note: The order of this array must match the TetrominoIdentifier enum
-	TetrominoShape* tetrominoes[TETROMINO_COUNT] = {&pieceI, &pieceO, &pieceT, &pieceZ, &pieceS, &pieceL, &pieceJ};
+	TetrominoShape* tetrominoes[TETROMINO_COUNT] = { &pieceI, &pieceO, &pieceT, &pieceZ, &pieceS, &pieceL, &pieceJ };
+
 	return tetrominoes[identifier - 1]; // Identifiers are 1-indexed, array is 0-indexed
 }
 
 const TetrominoShape* GetRandomTetrominoShape(void)
 {
-	const TetrominoIdentifier identifier = (SDL_rand(TETROMINO_COUNT) + 1); // (Identifiers are 1-indexed)
-	return GetTetrominoShapeByIdentifier(identifier);
+	static int dropCount = 0;
+	static TetrominoIdentifier tetrominoBag[TETROMINO_COUNT] = {I, O, T, Z, S, L, J};
+
+	if (dropCount >= TETROMINO_COUNT)
+	{
+		dropCount = 0;
+		Shuffle(tetrominoBag, TETROMINO_COUNT);
+	}
+
+	const TetrominoShape* tetromino = GetTetrominoShapeByIdentifier(tetrominoBag[dropCount]);
+	dropCount++;
+
+	return tetromino;
 }
 
 void RotateDroppingTetromino(DroppingTetromino* droppingTetromino, const int rotationAmount)
@@ -191,4 +205,22 @@ void RotateDroppingTetromino(DroppingTetromino* droppingTetromino, const int rot
 	const enum Orientation newDirection = (((droppingTetromino->rotation + rotationAmount) % 4) + 4) % 4;
 	// Cant do negative modulo operations in C
 	droppingTetromino->rotation = newDirection;
+}
+
+
+static void Shuffle(int* array, const size_t n)
+{
+    if (n > 1)
+    {
+        for (size_t i = 0; i < n - 1; i++)
+        {
+            // Pick a random index from i to n-1
+            const size_t j = i + SDL_rand(n - i);
+            
+            // Swap array[i] and array[j]
+            const int t = array[j];
+            array[j] = array[i];
+            array[i] = t;
+        }
+    }
 }
