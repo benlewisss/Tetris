@@ -26,11 +26,12 @@ bool GameIteration(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH],
  */
 bool CheckDroppingTetrominoCollision(const TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], const DroppingTetromino* droppingTetromino, int translationX, int translationY, const int rotationAmount);
 
-/** Resets the attributed of the dropping tetromino, essentially "spawning" a new one on the board and deleting the old one.
- * 
+/** Writes the location of the dropping tetromino onto the arena, and then resets it's attributes, essentially "spawning" a new one.
+ *
+ * @param arena The matrix representation of the tetris arena.
  * @param droppingTetromino A pointer to the dropping tetromino object.
  */
-void ResetDroppingTetromino(DroppingTetromino* droppingTetromino);
+void ResetDroppingTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], DroppingTetromino* droppingTetromino);
 
 /** Scan the board for rows that should be cleared, clear them, and return the corresponding score.
  * 

@@ -29,12 +29,13 @@ bool DrawArena(SDL_Renderer* renderer, const TetrominoIdentifier arena[ARENA_HEI
  *
  * @param renderer A pointer to the SDL renderer to draw to.
  * @param texture A pointer to the texture of the block.
+ * @param alpha The alpha of the texture of the block.
  * @param x The x coordinate in the grid.
  * @param y The y coordinate in the grid.
  *
  * @returns True if success, false otherwise.
  */
-bool DrawBlock(SDL_Renderer* renderer, SDL_Texture* texture, int x, int y);
+bool DrawBlock(SDL_Renderer* renderer, SDL_Texture* texture, Uint8 alpha, int x, int y);
 
 /**
  * Draw an entire tetromino on the grid.
@@ -45,5 +46,7 @@ bool DrawBlock(SDL_Renderer* renderer, SDL_Texture* texture, int x, int y);
  * @returns True if success, false otherwise.
  */
 bool DrawDroppingTetromino(SDL_Renderer* renderer, const DroppingTetromino* droppingTetromino);
+
+bool  DrawDroppingTetrominoGhost(SDL_Renderer* renderer, const TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], const DroppingTetromino* droppingTetromino);
 
 #endif //GRAPHICS_H

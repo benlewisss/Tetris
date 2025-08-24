@@ -106,7 +106,11 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 	}
 
 	// Initialise the first dropping tetromino
-	ResetDroppingTetromino(&g_droppingTetromino);
+	g_droppingTetromino.x = (ARENA_WIDTH - 1) / 2;
+	g_droppingTetromino.y = 0;
+	g_droppingTetromino.rotation = NORTH;
+	g_droppingTetromino.shape = *GetRandomTetrominoShape();
+	g_droppingTetromino.terminate = false;
 
 	return SDL_APP_CONTINUE;
 }
@@ -188,6 +192,7 @@ SDL_AppResult SDL_AppIterate(void* appstate)
 	SDL_RenderClear(state->renderer);
 
 	DrawDroppingTetromino(state->renderer, &g_droppingTetromino);
+	DrawDroppingTetrominoGhost(state->renderer, g_arena, &g_droppingTetromino);
 	DrawArena(state->renderer, g_arena);
 
 	GameIteration(g_arena, &g_droppingTetromino);

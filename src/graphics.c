@@ -3,6 +3,8 @@
 #include <stdbool.h>
 
 #include "graphics.h"
+
+#include "game.h"
 #include "util.h"
 #include "tetromino.h"
 
@@ -30,7 +32,7 @@ bool DrawArena(SDL_Renderer* renderer, const TetrominoIdentifier arena[ARENA_HEI
 			if (arena[row][col])
 			{
 				SDL_Texture* blockTexture = GetTetrominoShapeByIdentifier(arena[row][col])->texture;
-				DrawBlock(renderer, blockTexture, col, row);
+				DrawBlock(renderer, blockTexture, 255, col, row);
 			}
 
 			// Draw grid (This is the most performance hungry operation, can optimise by drawing images instead).
@@ -38,26 +40,21 @@ bool DrawArena(SDL_Renderer* renderer, const TetrominoIdentifier arena[ARENA_HEI
 			SDL_FRect rect = {(float)col * BLOCK_SIZE, (float)row * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE};
 			if (SDL_RenderRect(renderer, &rect) == false)
 				return false;
-
-			
 		}
 	}
 
 	return true;
 }
 
-bool DrawBlock(SDL_Renderer* renderer, SDL_Texture* texture, const int x, const int y)
+bool DrawBlock(SDL_Renderer* renderer, SDL_Texture* texture, const Uint8 alpha, const int x, const int y)
 {
-	// TODO Draw rendered image instead of drawing a square, it's much more performant - THIS NEEDS THE SDL_IMAGE LIBRARY. We need to figure out how to include this using cmake.
-	// TODO Instead of storing an RGB value in the tetromino structs, we can store a pointer to a surface that is generated from the images which we will load during init()
 	if (x >= ARENA_WIDTH || x < 0 || y >= ARENA_HEIGHT || y < 0)
 		return false;
 
 	const SDL_FRect rect = {(float)x * BLOCK_SIZE, (float)y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE};
 
-	SDL_RenderTexture(renderer, texture, NULL, &rect);
-
-	return true;
+	if (!SDL_SetTextureAlphaMod(texture, alpha)) return false;
+	return SDL_RenderTexture(renderer, texture, NULL, &rect);
 }
 
 bool DrawDroppingTetromino(SDL_Renderer* renderer, const DroppingTetromino* droppingTetromino)
@@ -67,7 +64,6 @@ bool DrawDroppingTetromino(SDL_Renderer* renderer, const DroppingTetromino* drop
 	const int droppingTetrominoY = droppingTetromino->y;
 	const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = droppingTetromino->shape.coordinates[droppingTetromino->rotation];
 
-	// Iterate over the coordinate pairs of each block in the tetromino
 	for (int i = 0; i < TETROMINO_MAX_SIZE; i++)
 	{
 		for (int j = 0; j < TETROMINO_MAX_SIZE; j++)
@@ -76,8 +72,40 @@ bool DrawDroppingTetromino(SDL_Renderer* renderer, const DroppingTetromino* drop
 
 			if (DrawBlock(renderer,
 				droppingTetrominoTexture,
+				255,
 				droppingTetrominoX + j,
 				droppingTetrominoY + i) == false)
+				return false;
+		}
+	}
+
+	return true;
+}
+
+bool DrawDroppingTetrominoGhost(SDL_Renderer* renderer, const TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], const DroppingTetromino* droppingTetromino)
+{
+	SDL_Texture* droppingTetrominoTexture = droppingTetromino->shape.texture;
+	const int droppingTetrominoX = droppingTetromino->x;
+	const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = droppingTetromino->shape.coordinates[droppingTetromino->rotation];
+
+
+	int translationY = 1;
+	while (!CheckDroppingTetrominoCollision(arena, droppingTetromino, 0, translationY++, 0)) {}
+	translationY += droppingTetromino->y - (TETROMINO_MAX_SIZE/2);
+
+	SDL_Log("Translation: %d", translationY);
+
+	for (int i = 0; i < TETROMINO_MAX_SIZE; i++)
+	{
+		for (int j = 0; j < TETROMINO_MAX_SIZE; j++)
+		{
+			if (droppingTetrominoRotatedCoordinates[i][j] == false) continue;
+
+			if (DrawBlock(renderer,
+				droppingTetrominoTexture,
+				50,
+				droppingTetrominoX + j,
+				translationY + i) == false)
 				return false;
 		}
 	}

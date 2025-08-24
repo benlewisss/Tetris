@@ -24,23 +24,9 @@ bool GameIteration(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH],
 		// Check if dropping tetromino has connected with ground or another block
 		if (CheckDroppingTetrominoCollision(arena, droppingTetromino, 0, 1, 0) == true)
 		{
-			const int droppingTetrominoX = droppingTetromino->x;
-			const int droppingTetrominoY = droppingTetromino->y;
-			const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = droppingTetromino->shape.coordinates[droppingTetromino->rotation];
-
-			// Update the arena with the location of the tetromino where it has collided
-			for (int i = 0; i < TETROMINO_MAX_SIZE; i++)
-			{
-				for (int j = 0; j < TETROMINO_MAX_SIZE; j++)
-				{
-					if (droppingTetrominoRotatedCoordinates[i][j] == false) continue;
-					arena[droppingTetrominoY + i][droppingTetrominoX + j] = droppingTetromino->shape.identifier;
-				}
-			}
-
 			// If the dropping tetromino in the previous iteration is marked for termination, that means we must replace it
 			// with a new dropping tetromino, essentially "spawning" a new one
-			ResetDroppingTetromino(droppingTetromino);
+			ResetDroppingTetromino(arena, droppingTetromino);
 			return true;
 		}
 
@@ -75,18 +61,29 @@ bool CheckDroppingTetrominoCollision(const TetrominoIdentifier arena[ARENA_HEIGH
 			if (offsetX >= ARENA_WIDTH || offsetX < 0 || offsetY >= ARENA_HEIGHT || offsetY < 0) return true;
 
 			// Check if the tetromino has collided with another tetromino on the board
-			if (arena[offsetY][offsetX] != 0)
-			{
-				return true;
-			}
+			if (arena[offsetY][offsetX] != 0) return true;
 		}
 	}
 
 	return false;
 }
 
-void ResetDroppingTetromino(DroppingTetromino* droppingTetromino)
+void ResetDroppingTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], DroppingTetromino* droppingTetromino)
 {
+	const int droppingTetrominoX = droppingTetromino->x;
+	const int droppingTetrominoY = droppingTetromino->y;
+	const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = droppingTetromino->shape.coordinates[droppingTetromino->rotation];
+
+	// Update the arena with the location of the tetromino where it has collided
+	for (int i = 0; i < TETROMINO_MAX_SIZE; i++)
+	{
+		for (int j = 0; j < TETROMINO_MAX_SIZE; j++)
+		{
+			if (droppingTetrominoRotatedCoordinates[i][j] == false) continue;
+			arena[droppingTetrominoY + i][droppingTetrominoX + j] = droppingTetromino->shape.identifier;
+		}
+	}
+
 	droppingTetromino->x = (ARENA_WIDTH - 1) / 2;
 	droppingTetromino->y = 0;
 	droppingTetromino->rotation = NORTH;
@@ -257,4 +254,5 @@ void HardDropTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], Dro
 	{
 		droppingTetromino->y++;
 	}
+	ResetDroppingTetromino(arena, droppingTetromino);
 }
