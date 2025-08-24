@@ -1,5 +1,7 @@
 #include "game.h"
 
+#include <assert.h>
+
 #include "util.h"
 #include "tetromino.h"
 
@@ -9,7 +11,7 @@ bool GameIteration(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH],
 	static int score = 0;
 
 	// Every n ticks, drop tetromino and run tetromino operations
-	const int speed = 750;
+	const int speed = 1000;
 	static Uint64 oldTick = 0;
 
 	if (SDL_GetTicks() - oldTick >= speed)
@@ -21,7 +23,8 @@ bool GameIteration(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH],
 		{
 			const int droppingTetrominoX = droppingTetromino->x;
 			const int droppingTetrominoY = droppingTetromino->y;
-			const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = droppingTetromino->shape.coordinates[droppingTetromino->rotation];
+			const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = droppingTetromino->shape.coordinates[
+				droppingTetromino->rotation];
 
 			// Update the arena with the location of the tetromino where it has collided
 			for (int i = 0; i < TETROMINO_MAX_SIZE; i++)
@@ -47,9 +50,12 @@ bool GameIteration(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH],
 	return true;
 }
 
-bool CheckDroppingTetrominoCollision(const TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], const DroppingTetromino* droppingTetromino, int translationX, int translationY, const int rotationAmount)
+bool CheckDroppingTetrominoCollision(const TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH],
+                                     const DroppingTetromino* droppingTetromino, int translationX, int translationY,
+                                     const int rotationAmount)
 {
-	const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = droppingTetromino->shape.coordinates[(((droppingTetromino->rotation + rotationAmount) % 4) + 4) % 4];
+	const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = droppingTetromino->shape.coordinates[(((
+		droppingTetromino->rotation + rotationAmount) % 4) + 4) % 4];
 
 	translationX += droppingTetromino->x;
 	translationY += droppingTetromino->y;
@@ -82,7 +88,7 @@ void ResetDroppingTetromino(DroppingTetromino* droppingTetromino)
 	droppingTetromino->x = (ARENA_WIDTH - 1) / 2;
 	droppingTetromino->y = 0;
 	droppingTetromino->rotation = NORTH;
-	droppingTetromino->shape = *GetTetrominoShapeByIdentifier(J);//*GetRandomTetrominoShape();
+	droppingTetromino->shape = *GetRandomTetrominoShape();
 	droppingTetromino->terminate = false;
 }
 
@@ -134,7 +140,7 @@ int ClearFilledRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH])
 		}
 
 		if (topPointerSquareCount >= ARENA_WIDTH)
-		{ 
+		{
 			topPointer--;
 		}
 		else
@@ -159,13 +165,86 @@ int ClearFilledRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH])
 	return numFilledRows * 1000;
 }
 
-void WallKickRotateDroppingTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], DroppingTetromino* droppingTetromino, const int rotationAmount)
+bool WallKickRotateDroppingTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], DroppingTetromino* droppingTetromino, const int rotationDirection)
 {
-	//// I think the best way is to store the Wall Kick Data (the 2d array can be found at https://tetris.wiki/Super_Rotation_System) as a 2D array of coordinate pairs (so 3D array), which is accessed here.
-	//if (rotationAmount == -1)
-	//{
-	//	if (CheckDroppingTetrominoRotationCollision(arena, droppingTetromino,))
-	//}
 
-	//RotateDroppingTetromino(DroppingTetromino)
+	// 2D array of coordinate pairs (3D) representing the Wall Kick Data (see https://tetris.wiki/Super_Rotation_System).
+	// The first dimension is the rotation direction, the second dimension are one of the 5 tests, and the third dimension are the test coordinate pairs.
+	static const int8_t WALL_KICK_DATA[8][5][2] = {
+		{{0, 0}, {-1, 0}, {-1, +1}, {0, -2}, {-1, -2}},
+		{{0, 0}, {1, 0}, {1, -1}, {0, 2}, {1, 2}},
+		{{0, 0}, {1, 0}, {1, -1}, {0, 2}, {1, 2}},
+		{{0, 0}, {-1, 0}, {-1, 1}, {0, -2}, {-1, -2}},
+		{{0, 0}, {1, 0}, {1, 1}, {0, -2}, {1, -2}},
+		{{0, 0}, {-1, 0}, {-1, -1}, {0, 2}, {-1, 2}},
+		{{0, 0}, {-1, 0}, {-1, -1}, {0, 2}, {-1, 2}},
+		{{0, 0}, {1, 0}, {1, 1}, {0, -2}, {1, -2}},
+	};
+
+	static const int8_t SPECIAL_WALL_KICK_DATA[8][5][2] = {
+		{{0, 0}, {-2, 0}, {1, 0}, {-2, -1}, {1, 2}},
+		{{0, 0}, {2, 0}, {-1, 0}, {2, 1}, {-1, -2}},
+		{{0, 0}, {-1, 0}, {2, 0}, {-1, 2}, {2, -1}},
+		{{0, 0}, {1, 0}, {-2, 0}, {1, -2}, {-2, 1}},
+		{{0, 0}, {2, 0}, {-1, 0}, {2, 1}, {-1, -2}},
+		{{0, 0}, {-2, 0}, {1, 0}, {-2, -1}, {1, 2}},
+		{{0, 0}, {1, 0}, {-2, 0}, {1, -2}, {-2, 1}},
+		{{0, 0}, {-1, 0}, {2, 0}, {-1, 2}, {2, -1}},
+	};
+
+	// Valid parameter checks
+	if (!(rotationDirection == -1 || rotationDirection == 1)) return false;
+
+	// One of eight possible rotation state changes (In numerical order: NORTH->EAST, EAST->NORTH, EAST->SOUTH, SOUTH->EAST, SOUTH->WEST, WEST->SOUTH, WEST->NORTH, NORTH->WEST)
+	int rotationStateChange = 0;
+
+	switch (droppingTetromino->rotation)
+	{
+		case NORTH:
+			if (rotationDirection == -1) rotationStateChange = 7;
+			if (rotationDirection == 1) rotationStateChange = 0;
+			break;
+		case EAST:
+			if (rotationDirection == -1) rotationStateChange = 1;
+			if (rotationDirection == 1) rotationStateChange = 2;
+			break;
+		case SOUTH:
+			if (rotationDirection == -1) rotationStateChange = 3;
+			if (rotationDirection == 1) rotationStateChange = 4;
+			break;
+		case WEST:
+			if (rotationDirection == -1) rotationStateChange = 5;
+			if (rotationDirection == 1) rotationStateChange = 6;
+			break;
+	}
+
+	// Special case (The [I] tetromino(s) have differing Wall Kick data)
+	if (droppingTetromino->shape.identifier == I)
+	{
+		for (int i = 0; i < 5; i++)
+		{
+			if (!CheckDroppingTetrominoCollision(arena, droppingTetromino, SPECIAL_WALL_KICK_DATA[rotationStateChange][i][0], SPECIAL_WALL_KICK_DATA[rotationStateChange][i][1], rotationDirection))
+			{
+				droppingTetromino->x += SPECIAL_WALL_KICK_DATA[rotationStateChange][i][0];
+				droppingTetromino->y += SPECIAL_WALL_KICK_DATA[rotationStateChange][i][1];
+				RotateDroppingTetromino(droppingTetromino, rotationDirection);
+				return true;
+			}
+		}
+	}
+	else
+	{
+		for (int i = 0; i < 5; i++)
+		{
+			if (!CheckDroppingTetrominoCollision(arena, droppingTetromino, WALL_KICK_DATA[rotationStateChange][i][0], WALL_KICK_DATA[rotationStateChange][i][1], rotationDirection))
+			{
+				droppingTetromino->x += WALL_KICK_DATA[rotationStateChange][i][0];
+				droppingTetromino->y += WALL_KICK_DATA[rotationStateChange][i][1];
+				RotateDroppingTetromino(droppingTetromino, rotationDirection);
+				return true;
+			}
+		}
+	}
+
+	return false;
 }

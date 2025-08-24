@@ -48,9 +48,12 @@ static void DropRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], int d
 /** IMPORTANT: This needs to be renamed to something befitting of its function to differentiate it from the rotating function in tetromino.c, this one abstracts a lot more game logic.
  * Maybe rename the other one?
  * 
- * @param droppingTetromino 
- * @param rotationAmount 
+ * @param arena The matrix representation of the tetris arena.
+ * @param droppingTetromino A pointer to the dropping tetromino object.
+ * @param rotationDirection The direction to rotate the tetromino, 1 for right, -1 for left. 
+ *
+ * @returns True if success, false otherwise.
  */
-void WallKickRotateDroppingTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], DroppingTetromino* droppingTetromino, const int rotationAmount);
+bool WallKickRotateDroppingTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], DroppingTetromino* droppingTetromino, const int rotationDirection);
 
 #endif //GAME_H

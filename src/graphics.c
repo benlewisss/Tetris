@@ -33,7 +33,7 @@ bool DrawArena(SDL_Renderer* renderer, const TetrominoIdentifier arena[ARENA_HEI
 				DrawBlock(renderer, blockTexture, col, row);
 			}
 
-			// Draw grid
+			// Draw grid (This is the most performance hungry operation, can optimise by drawing images instead).
 			SDL_SetRenderDrawColor(renderer, 32, 32, 32, 255); // Grey
 			SDL_FRect rect = {(float)col * BLOCK_SIZE, (float)row * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE};
 			if (SDL_RenderRect(renderer, &rect) == false)

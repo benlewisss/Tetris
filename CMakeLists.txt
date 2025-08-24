@@ -36,3 +36,14 @@ file(COPY ${CMAKE_SOURCE_DIR}/resources DESTINATION ${CMAKE_BINARY_DIR})
 
 # Provide resource path macro for code
 target_compile_definitions(Tetris PRIVATE RESOURCE_PATH="${CMAKE_BINARY_DIR}/resources/")
+
+# Recommended build type for profiling on release
+set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Build type" FORCE)
+
+# Ensure debug information is generated for profiling
+if (MSVC)
+    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /Zi /Ob0 /Od /RTC1")
+    set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} /Zi /O2")
+    target_link_options(Tetris PRIVATE /DEBUG)
+endif()
+
