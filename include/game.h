@@ -41,12 +41,12 @@ void ResetDroppingTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH]
  */
 int ClearFilledRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH]);
 
-/* Drops everything above this row by one.
+/* TODO NEW Doc Drops everything above this row by one.
  *
 */
 static void DropRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], int dropToRow, int dropAmount);
 
-/** IMPORTANT: This needs to be renamed to something befitting of its function to differentiate it from the rotating function in tetromino.c, this one abstracts a lot more game logic.
+/** TODO IMPORTANT: This needs to be renamed to something befitting of its function to differentiate it from the rotating function in tetromino.c, this one abstracts a lot more game logic.
  * Maybe rename the other one?
  * 
  * @param arena The matrix representation of the tetris arena.
@@ -58,5 +58,7 @@ static void DropRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], int d
 bool WallKickRotateDroppingTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], DroppingTetromino* droppingTetromino, const int rotationDirection);
 
 void HardDropTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], DroppingTetromino* droppingTetromino);
+
+void SoftDropTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], DroppingTetromino* droppingTetromino);
 
 #endif //GAME_H

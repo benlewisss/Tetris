@@ -19,16 +19,7 @@ bool GameIteration(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH],
 	{
 		score += ClearFilledRows(arena);
 
-		// Check if dropping tetromino has connected with ground or another block
-		if (CheckDroppingTetrominoCollision(arena, droppingTetromino, 0, 1, 0) == true)
-		{
-			// If the dropping tetromino in the previous iteration is marked for termination, that means we must replace it
-			// with a new dropping tetromino, essentially "spawning" a new one
-			ResetDroppingTetromino(arena, droppingTetromino);
-			return true;
-		}
-
-		droppingTetromino->y++;
+		SoftDropTetromino(arena, droppingTetromino);
 
 		oldTick = SDL_GetTicks();
 	}
@@ -253,4 +244,16 @@ void HardDropTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], Dro
 		droppingTetromino->y++;
 	}
 	ResetDroppingTetromino(arena, droppingTetromino);
+}
+
+void SoftDropTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], DroppingTetromino* droppingTetromino)
+{
+	if (CheckDroppingTetrominoCollision(arena, droppingTetromino, 0, 1, 0))
+	{
+		ResetDroppingTetromino(arena, droppingTetromino);
+	}
+	else
+	{
+		droppingTetromino->y++;
+	}
 }

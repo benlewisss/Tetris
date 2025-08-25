@@ -163,7 +163,8 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
 			break;
 		case SDLK_S:
 		case SDLK_DOWN:
-			WallKickRotateDroppingTetromino(g_arena, &g_droppingTetromino, -1);
+			/*WallKickRotateDroppingTetromino(g_arena, &g_droppingTetromino, -1);*/
+			SoftDropTetromino(g_arena, &g_droppingTetromino);
 			break;
 		case SDLK_SPACE:
 			HardDropTetromino(g_arena, &g_droppingTetromino);
