@@ -1,5 +1,7 @@
 #include "game.h"
 
+#include <stdio.h>
+
 #include "util.h"
 #include "tetromino.h"
 
@@ -9,12 +11,13 @@ bool GameIteration(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH],
 	static int score = 0;
 	static int level = 2;
 
-	// The time (in milleseconds) to drop a tetromino one cell (i.e. speed) for each of the tetris levels
+	// The time (in milliseconds) to drop a tetromino one cell (i.e. speed) for each of the tetris levels
 	static Uint64 gravityValues[20] = {1000, 793, 618, 473, 355, 262, 190, 135, 94, 64, 43, 28, 18, 11, 7, 5, 4, 3, 2, 1};
 
-	// Check dropping tetromino is marked for termination and has passed Lock Down in milliseconds (See https://tetris.wiki/Tetris_Guideline#LockDown)
+	// Lock Down time - how long the player should have to move a tetromino around on the board once it has made contact with the ground
 	static int lockDownTime = 500;
 
+	// Check dropping tetromino is marked for termination and has passed Lock Down (See https://tetris.wiki/Tetris_Guideline#LockDown)
 	if (droppingTetromino->terminationTime)
 	{
 		// If the tetromino is in Lock Down, but moves to a position where it can drop, then we don't want to reset it
@@ -258,6 +261,7 @@ void HardDropTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], Dro
 	{
 		droppingTetromino->y++;
 	}
+
 	ResetDroppingTetromino(arena, droppingTetromino);
 }
 
@@ -265,7 +269,7 @@ void SoftDropTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], Dro
 {
 	if (CheckDroppingTetrominoCollision(arena, droppingTetromino, 0, 1, 0))
 	{
-		droppingTetromino->terminationTime = SDL_GetTicks();
+		if (droppingTetromino->terminationTime == 0) droppingTetromino->terminationTime = SDL_GetTicks();
 	}
 	else
 	{
