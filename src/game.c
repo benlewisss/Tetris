@@ -9,8 +9,24 @@ bool GameIteration(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH],
 	static int score = 0;
 	static int level = 2;
 
-	// The time to drop a tetromino one cell (i.e. speed) for each of the tetris levels (where the index is the level
+	// The time (in milleseconds) to drop a tetromino one cell (i.e. speed) for each of the tetris levels
 	static Uint64 gravityValues[20] = {1000, 793, 618, 473, 355, 262, 190, 135, 94, 64, 43, 28, 18, 11, 7, 5, 4, 3, 2, 1};
+
+	// Check dropping tetromino is marked for termination and has passed Lock Down in milliseconds (See https://tetris.wiki/Tetris_Guideline#LockDown)
+	static int lockDownTime = 500;
+
+	if (droppingTetromino->terminationTime)
+	{
+		// If the tetromino is in Lock Down, but moves to a position where it can drop, then we don't want to reset it
+		if (!CheckDroppingTetrominoCollision(arena, droppingTetromino, 0, 1, 0))
+		{
+			droppingTetromino->terminationTime = 0;
+		}
+		else if (SDL_GetTicks() > (droppingTetromino->terminationTime + lockDownTime))
+		{
+			ResetDroppingTetromino(arena, droppingTetromino);
+		}
+	}
 
 	// Every n ticks, drop tetromino and run tetromino operations
 	static Uint64 oldTick = 0;
@@ -31,8 +47,7 @@ bool CheckDroppingTetrominoCollision(const TetrominoIdentifier arena[ARENA_HEIGH
                                      const DroppingTetromino* droppingTetromino, int translationX, int translationY,
                                      const int rotationAmount)
 {
-	const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = droppingTetromino->shape.coordinates[(((
-		droppingTetromino->rotation + rotationAmount) % 4) + 4) % 4];
+	const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = droppingTetromino->shape.coordinates[(((droppingTetromino->rotation + rotationAmount) % 4) + 4) % 4];
 
 	translationX += droppingTetromino->x;
 	translationY += droppingTetromino->y;
@@ -77,7 +92,7 @@ void ResetDroppingTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH]
 	droppingTetromino->y = 0;
 	droppingTetromino->rotation = NORTH;
 	droppingTetromino->shape = *GetRandomTetrominoShape();
-	droppingTetromino->terminate = false;
+	droppingTetromino->terminationTime = 0;
 }
 
 /* Drops everything above this row by drop amount
@@ -250,7 +265,7 @@ void SoftDropTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], Dro
 {
 	if (CheckDroppingTetrominoCollision(arena, droppingTetromino, 0, 1, 0))
 	{
-		ResetDroppingTetromino(arena, droppingTetromino);
+		droppingTetromino->terminationTime = SDL_GetTicks();
 	}
 	else
 	{

@@ -114,7 +114,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 	g_droppingTetromino.y = 0;
 	g_droppingTetromino.rotation = NORTH;
 	g_droppingTetromino.shape = *GetRandomTetrominoShape();
-	g_droppingTetromino.terminate = false;
+	g_droppingTetromino.terminationTime = 0;
 
 	return SDL_APP_CONTINUE;
 }

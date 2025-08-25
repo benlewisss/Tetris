@@ -49,7 +49,8 @@ typedef struct DroppingTetromino
 	int y;
 	enum Orientation rotation;
 	TetrominoShape shape;
-	bool terminate;
+	Uint64 terminationTime; // The time at which the dropping tetromino was marked for termination
+	// TODO Possibly implement tracker for number of moves, so we can limit the number of rotations to 15 before it hard locks, preventing infinite spin (see wiki)
 } DroppingTetromino;
 
 /**
