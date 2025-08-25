@@ -1,8 +1,7 @@
 #include <SDL3/SDL.h>
+#include <stdlib.h>
 
 #include "tetromino.h"
-
-#include <stdlib.h>
 
 TetrominoShape* GetTetrominoShapeByIdentifier(const TetrominoIdentifier identifier)
 {

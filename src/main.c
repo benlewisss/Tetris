@@ -29,6 +29,7 @@ typedef struct
 	bool isRunning;
 } AppState;
 
+static float g_blockSize;
 static TetrominoIdentifier g_arena[ARENA_HEIGHT][ARENA_WIDTH] = {{0}};
 static DroppingTetromino g_droppingTetromino;
 
@@ -83,8 +84,8 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 	AppState* state = SDL_calloc(1, sizeof(AppState));
 	if (!state) return SDL_APP_FAILURE;
 
-	SDL_CreateWindowAndRenderer("TETRIS", ARENA_WIDTH * BLOCK_SIZE, ARENA_HEIGHT * BLOCK_SIZE, false, &state->window,
-	                            &state->renderer);
+	// TODO Create window based off resolution
+	SDL_CreateWindowAndRenderer("TETRIS", (ARENA_WIDTH * BLOCK_SIZE) + 200, ARENA_HEIGHT * BLOCK_SIZE, SDL_WINDOW_RESIZABLE, &state->window,&state->renderer);
 	if (!state->window || !state->renderer)
 	{
 		SDL_Log("Window or Renderer creation failed: %s", SDL_GetError());
@@ -104,6 +105,9 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Failed to load resources!", SDL_GetError(), NULL);
 		return SDL_APP_FAILURE;
 	}
+
+	// TODO Block size should depend on size of window
+	g_blockSize = 60;
 
 	// Initialise the first dropping tetromino
 	g_droppingTetromino.x = (ARENA_WIDTH - 1) / 2;
@@ -131,6 +135,14 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
 	case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
 		SDL_Log("Window close requested");
 		state->isRunning = false;
+		break;
+
+	case SDL_EVENT_WINDOW_RESIZED:
+		const float widthBasedSize = event->window.data1 / (float) ARENA_WIDTH;
+		const float heightBasedSize = event->window.data2 / (float) ARENA_HEIGHT;
+
+		g_blockSize = (widthBasedSize < heightBasedSize) ? widthBasedSize : heightBasedSize;
+		
 		break;
 
 	case SDL_EVENT_KEY_DOWN:
@@ -172,10 +184,6 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
 		}
 		break;
 
-	case SDL_EVENT_WINDOW_RESIZED:
-		SDL_Log("Window Resized to %d x %d", event->window.data1, event->window.data2);
-		break;
-
 	default:
 		break;
 	}
@@ -191,9 +199,10 @@ SDL_AppResult SDL_AppIterate(void* appstate)
 	SDL_SetRenderDrawColor(state->renderer, 17, 17, 17, 255);
 	SDL_RenderClear(state->renderer);
 
-	DrawDroppingTetromino(state->renderer, &g_droppingTetromino);
-	DrawDroppingTetrominoGhost(state->renderer, g_arena, &g_droppingTetromino);
-	DrawArena(state->renderer, g_arena);
+	// TODO If I am passing blockSize and arena every time to different draw calls, might it not be better to have this as a global within graphics which we just modify with setters in main()?
+	DrawDroppingTetromino(state->renderer, g_blockSize, &g_droppingTetromino);
+	DrawDroppingTetrominoGhost(state->renderer, g_blockSize, g_arena, &g_droppingTetromino);
+	DrawArena(state->renderer, g_blockSize, g_arena);
 
 	GameIteration(g_arena, &g_droppingTetromino);
 

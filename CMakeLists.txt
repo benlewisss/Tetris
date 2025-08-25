@@ -23,7 +23,7 @@ add_executable(Tetris
     include/graphics.h
     include/tetromino.h
     include/util.h
-)
+ )
 
 # Include headers
 target_include_directories(Tetris PRIVATE ${CMAKE_SOURCE_DIR}/include)

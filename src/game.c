@@ -1,7 +1,5 @@
 #include "game.h"
 
-#include <stdlib.h>
-
 #include "util.h"
 #include "tetromino.h"
 

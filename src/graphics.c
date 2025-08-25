@@ -4,8 +4,8 @@
 
 #include "graphics.h"
 
-#include "game.h"
 #include "util.h"
+#include "game.h"
 #include "tetromino.h"
 
 bool LoadResources(SDL_Renderer* renderer)
@@ -22,7 +22,7 @@ bool LoadResources(SDL_Renderer* renderer)
 	return true;
 }
 
-bool DrawArena(SDL_Renderer* renderer, const TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH])
+bool DrawArena(SDL_Renderer* renderer, const float blockSize, const TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH])
 {
 	for (int row = 0; row < ARENA_HEIGHT; row++)
 	{
@@ -32,12 +32,12 @@ bool DrawArena(SDL_Renderer* renderer, const TetrominoIdentifier arena[ARENA_HEI
 			if (arena[row][col])
 			{
 				SDL_Texture* blockTexture = GetTetrominoShapeByIdentifier(arena[row][col])->texture;
-				DrawBlock(renderer, blockTexture, 255, col, row);
+				DrawBlock(renderer, blockSize, blockTexture, 255, col, row);
 			}
 
 			// Draw grid (This is the most performance hungry operation, can optimise by drawing images instead).
 			SDL_SetRenderDrawColor(renderer, 32, 32, 32, 255); // Grey
-			SDL_FRect rect = {(float)col * BLOCK_SIZE, (float)row * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE};
+			SDL_FRect rect = {(float)col * blockSize, (float)row * blockSize, blockSize, blockSize };
 			if (SDL_RenderRect(renderer, &rect) == false)
 				return false;
 		}
@@ -46,18 +46,18 @@ bool DrawArena(SDL_Renderer* renderer, const TetrominoIdentifier arena[ARENA_HEI
 	return true;
 }
 
-bool DrawBlock(SDL_Renderer* renderer, SDL_Texture* texture, const Uint8 alpha, const int x, const int y)
+bool DrawBlock(SDL_Renderer* renderer, const float blockSize, SDL_Texture* texture, const Uint8 alpha, const int x, const int y)
 {
 	if (x >= ARENA_WIDTH || x < 0 || y >= ARENA_HEIGHT || y < 0)
-		return false;
+		return false; 
 
-	const SDL_FRect rect = {(float)x * BLOCK_SIZE, (float)y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE};
+	const SDL_FRect rect = {(float)x * blockSize, (float)y * blockSize, blockSize, blockSize};
 
 	if (!SDL_SetTextureAlphaMod(texture, alpha)) return false;
 	return SDL_RenderTexture(renderer, texture, NULL, &rect);
 }
 
-bool DrawDroppingTetromino(SDL_Renderer* renderer, const DroppingTetromino* droppingTetromino)
+bool DrawDroppingTetromino(SDL_Renderer* renderer, const float blockSize, const DroppingTetromino* droppingTetromino)
 {
 	SDL_Texture* droppingTetrominoTexture = droppingTetromino->shape.texture;
 	const int droppingTetrominoX = droppingTetromino->x;
@@ -71,6 +71,7 @@ bool DrawDroppingTetromino(SDL_Renderer* renderer, const DroppingTetromino* drop
 			if (droppingTetrominoRotatedCoordinates[i][j] == false) continue;
 
 			if (DrawBlock(renderer,
+				blockSize,
 				droppingTetrominoTexture,
 				255,
 				droppingTetrominoX + j,
@@ -82,31 +83,22 @@ bool DrawDroppingTetromino(SDL_Renderer* renderer, const DroppingTetromino* drop
 	return true;
 }
 
-bool DrawDroppingTetrominoGhost(SDL_Renderer* renderer, const TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], const DroppingTetromino* droppingTetromino)
+bool DrawDroppingTetrominoGhost(SDL_Renderer* renderer, const float blockSize, const TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], const DroppingTetromino* droppingTetromino)
 {
 	SDL_Texture* droppingTetrominoTexture = droppingTetromino->shape.texture;
 	const int droppingTetrominoX = droppingTetromino->x;
 	const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = droppingTetromino->shape.coordinates[droppingTetromino->rotation];
 
-
 	int translationY = 1;
 	while (!CheckDroppingTetrominoCollision(arena, droppingTetromino, 0, translationY++, 0)) {}
 	translationY += droppingTetromino->y - (TETROMINO_MAX_SIZE/2);
-
-	SDL_Log("Translation: %d", translationY);
 
 	for (int i = 0; i < TETROMINO_MAX_SIZE; i++)
 	{
 		for (int j = 0; j < TETROMINO_MAX_SIZE; j++)
 		{
 			if (droppingTetrominoRotatedCoordinates[i][j] == false) continue;
-
-			if (DrawBlock(renderer,
-				droppingTetrominoTexture,
-				50,
-				droppingTetrominoX + j,
-				translationY + i) == false)
-				return false;
+			if (DrawBlock(renderer, blockSize, droppingTetrominoTexture,50, droppingTetrominoX + j, translationY + i) == false) return false;
 		}
 	}
 
