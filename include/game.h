@@ -3,6 +3,14 @@
 
 #include "util.h"
 #include "tetromino.h"
+
+struct
+{
+	int score;
+} GameConfig;
+
+bool InitGameConfig();
+
 /** The method handling all the game logic that should happen each frame
  * 
  * @param arena The matrix representation of the tetris arena.

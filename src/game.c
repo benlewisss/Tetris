@@ -1,14 +1,18 @@
 #include "game.h"
 
-#include <stdio.h>
-
 #include "util.h"
 #include "tetromino.h"
+
+bool InitGameConfig()
+{
+	GameConfig.score = 0;
+
+	return true;
+}
 
 bool GameIteration(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH],
                    DroppingTetromino* droppingTetromino)
 {
-	static int score = 0;
 	static int level = 2;
 
 	// The time (in milliseconds) to drop a tetromino one cell (i.e. speed) for each of the tetris levels
@@ -36,7 +40,7 @@ bool GameIteration(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH],
 
 	if (SDL_GetTicks() - oldTick >= gravityValues[level])
 	{
-		score += ClearFilledRows(arena);
+		GameConfig.score += ClearFilledRows(arena);
 
 		SoftDropTetromino(arena, droppingTetromino);
 
@@ -94,7 +98,7 @@ void ResetDroppingTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH]
 	droppingTetromino->x = (ARENA_WIDTH - 1) / 2;
 	droppingTetromino->y = 0;
 	droppingTetromino->rotation = NORTH;
-	droppingTetromino->shape = *GetRandomTetrominoShape();
+	droppingTetromino->shape = *GetTetrominoShapeByIdentifier(I);//*GetRandomTetrominoShape();
 	droppingTetromino->terminationTime = 0;
 }
 

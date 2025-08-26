@@ -10,6 +10,7 @@
 #include "tetromino.h"
 #include "game.h"
 #include "graphics.h"
+#include "SDL3_ttf/SDL_ttf.h"
 
 static const struct
 {
@@ -29,9 +30,8 @@ typedef struct
 	bool isRunning;
 } AppState;
 
-static float g_blockSize;
 static TetrominoIdentifier g_arena[ARENA_HEIGHT][ARENA_WIDTH] = {{0}};
-static DroppingTetromino g_droppingTetromino;
+static DroppingTetromino* g_droppingTetrominoPtr;
 
 //// DEBUG Purposes 
 //static TetrominoIdentifier g_arena[ARENA_HEIGHT][ARENA_WIDTH] = {
@@ -60,6 +60,20 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 {
 	SDL_Log("Tetris Initialisation");
 
+	if (!InitGraphicsConfig())
+	{
+		SDL_Log("Failed to initialise graphics module: %s", SDL_GetError());
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Failed to initialise graphics module!", SDL_GetError(), NULL);
+		return SDL_APP_FAILURE;
+	}
+
+	if (!InitGameConfig())
+	{
+		SDL_Log("Failed to initialise graphics module: %s", SDL_GetError());
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Failed to initialise graphics module!", SDL_GetError(), NULL);
+		return SDL_APP_FAILURE;
+	}
+
 	// Setup application metadata
 	if (!SDL_SetAppMetadata("TETRIS", "1.0", "Tetris"))
 	{
@@ -74,10 +88,17 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 		}
 	}
 
-	if (!SDL_Init(SDL_INIT_VIDEO))
+	if (SDL_Init(SDL_INIT_VIDEO) == false)
 	{
 		SDL_Log("Couldn't initialize SDL: %s", SDL_GetError());
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Couldn't initialize SDL!", SDL_GetError(), NULL);
+		return SDL_APP_FAILURE;
+	}
+
+	if (TTF_Init() == false)
+	{
+		SDL_Log("Couldn't initialize TTF: %s", SDL_GetError());
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Couldn't initialize TTF!", SDL_GetError(), NULL);
 		return SDL_APP_FAILURE;
 	}
 
@@ -85,7 +106,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 	if (!state) return SDL_APP_FAILURE;
 
 	// TODO Create window based off resolution
-	SDL_CreateWindowAndRenderer("TETRIS", (ARENA_WIDTH * BLOCK_SIZE) + 200, ARENA_HEIGHT * BLOCK_SIZE, SDL_WINDOW_RESIZABLE, &state->window,&state->renderer);
+	SDL_CreateWindowAndRenderer("TETRIS", (ARENA_WIDTH * GraphicsConfig.gridSquareSize) + (GraphicsConfig.gridSquareSize * 5), ARENA_HEIGHT * GraphicsConfig.gridSquareSize, SDL_WINDOW_RESIZABLE, &state->window, &state->renderer);
 	if (!state->window || !state->renderer)
 	{
 		SDL_Log("Window or Renderer creation failed: %s", SDL_GetError());
@@ -101,20 +122,19 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 	// Load resources, including assigning textures to tetrominoes
 	if (!LoadResources(state->renderer))
 	{
-		SDL_Log("Loading resources failed: %s", SDL_GetError());
+		SDL_Log("Failed to load resources: %s", SDL_GetError());
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Failed to load resources!", SDL_GetError(), NULL);
 		return SDL_APP_FAILURE;
 	}
 
-	// TODO Block size should depend on size of window
-	g_blockSize = 60;
-
 	// Initialise the first dropping tetromino
+	static DroppingTetromino g_droppingTetromino;
 	g_droppingTetromino.x = (ARENA_WIDTH - 1) / 2;
 	g_droppingTetromino.y = 0;
 	g_droppingTetromino.rotation = NORTH;
 	g_droppingTetromino.shape = *GetRandomTetrominoShape();
 	g_droppingTetromino.terminationTime = 0;
+	g_droppingTetrominoPtr = &g_droppingTetromino;
 
 	return SDL_APP_CONTINUE;
 }
@@ -138,10 +158,7 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
 		break;
 
 	case SDL_EVENT_WINDOW_RESIZED:
-		const float widthBasedSize = event->window.data1 / (float) ARENA_WIDTH;
-		const float heightBasedSize = event->window.data2 / (float) ARENA_HEIGHT;
-
-		g_blockSize = (widthBasedSize < heightBasedSize) ? widthBasedSize : heightBasedSize;
+		ResizeWindow(event->window.data1, event->window.data2);
 		
 		break;
 
@@ -151,23 +168,22 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
 		{
 		case SDLK_D:
 		case SDLK_RIGHT:
-			if (!CheckDroppingTetrominoCollision(g_arena, &g_droppingTetromino, 1, 0, 0)) g_droppingTetromino.x++;
+			if (!CheckDroppingTetrominoCollision(g_arena, g_droppingTetrominoPtr, 1, 0, 0)) g_droppingTetrominoPtr->x++;
 			break;
 		case SDLK_A:
 		case SDLK_LEFT:
-			if (!CheckDroppingTetrominoCollision(g_arena, &g_droppingTetromino, -1, 0, 0)) g_droppingTetromino.x--;
+			if (!CheckDroppingTetrominoCollision(g_arena, g_droppingTetrominoPtr, -1, 0, 0)) g_droppingTetrominoPtr->x--;
 			break;
 		case SDLK_W:
 		case SDLK_UP:
-			WallKickRotateDroppingTetromino(g_arena, &g_droppingTetromino, 1);
+			WallKickRotateDroppingTetromino(g_arena, g_droppingTetrominoPtr, 1);
 			break;
 		case SDLK_S:
 		case SDLK_DOWN:
-			/*WallKickRotateDroppingTetromino(g_arena, &g_droppingTetromino, -1);*/
-			SoftDropTetromino(g_arena, &g_droppingTetromino);
+			SoftDropTetromino(g_arena, g_droppingTetrominoPtr);
 			break;
 		case SDLK_SPACE:
-			HardDropTetromino(g_arena, &g_droppingTetromino);
+			HardDropTetromino(g_arena, g_droppingTetrominoPtr);
 			break;
 		default:
 			break;
@@ -201,11 +217,12 @@ SDL_AppResult SDL_AppIterate(void* appstate)
 	SDL_RenderClear(state->renderer);
 
 	// TODO If I am passing blockSize and arena every time to different draw calls, might it not be better to have this as a global within graphics which we just modify with setters in main()?
-	DrawDroppingTetromino(state->renderer, g_blockSize, &g_droppingTetromino);
-	DrawDroppingTetrominoGhost(state->renderer, g_blockSize, g_arena, &g_droppingTetromino);
-	DrawArena(state->renderer, g_blockSize, g_arena);
+	DrawDroppingTetromino(state->renderer, g_droppingTetrominoPtr);
+	DrawDroppingTetrominoGhost(state->renderer, g_arena, g_droppingTetrominoPtr);
+	DrawArena(state->renderer, g_arena);
+	DrawSideBar(state->renderer, GameConfig.score);
 
-	GameIteration(g_arena, &g_droppingTetromino);
+	GameIteration(g_arena, g_droppingTetrominoPtr);
 
 	// int width, height;
 	// SDL_GetWindowSize(state->window, &width, &height);
