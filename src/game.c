@@ -6,6 +6,7 @@
 bool InitGameConfig()
 {
 	GameConfig.score = 0;
+	GameConfig.level = 0;
 
 	return true;
 }
@@ -13,7 +14,6 @@ bool InitGameConfig()
 bool GameIteration(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH],
                    DroppingTetromino* droppingTetromino)
 {
-	static int level = 2;
 
 	// The time (in milliseconds) to drop a tetromino one cell (i.e. speed) for each of the tetris levels
 	static Uint64 gravityValues[20] = {1000, 793, 618, 473, 355, 262, 190, 135, 94, 64, 43, 28, 18, 11, 7, 5, 4, 3, 2, 1};
@@ -38,9 +38,27 @@ bool GameIteration(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH],
 	// Every n ticks, drop tetromino and run tetromino operations
 	static Uint64 oldTick = 0;
 
-	if (SDL_GetTicks() - oldTick >= gravityValues[level])
+	if (SDL_GetTicks() - oldTick >= gravityValues[GameConfig.level])
 	{
-		GameConfig.score += ClearFilledRows(arena);
+		// Scoring for different line clears
+		switch (ClearFilledRows(arena))
+		{
+			case 1:
+				GameConfig.score += 100 * (GameConfig.level + 1);
+				break;
+			case 2:
+				GameConfig.score += 300 * (GameConfig.level + 1);
+				break;
+			case 3:
+				GameConfig.score += 500 * (GameConfig.level + 1);
+				break;
+			case 4:
+				GameConfig.score += 800 * (GameConfig.level + 1);
+				break;
+			default:
+				break;
+
+		}
 
 		SoftDropTetromino(arena, droppingTetromino);
 
@@ -172,7 +190,7 @@ int ClearFilledRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH])
 	}
 	DropRows(arena, bottomPointer, bottomPointer - topPointer);
 
-	return numFilledRows * 1000;
+	return numFilledRows;
 }
 
 bool WallKickRotateDroppingTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], DroppingTetromino* droppingTetromino, const int rotationDirection)
@@ -263,6 +281,7 @@ void HardDropTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], Dro
 {
 	while (!CheckDroppingTetrominoCollision(arena, droppingTetromino, 0, 1, 0))
 	{
+		GameConfig.score += 2;
 		droppingTetromino->y++;
 	}
 
@@ -277,6 +296,7 @@ void SoftDropTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], Dro
 	}
 	else
 	{
+		GameConfig.score += 1;
 		droppingTetromino->y++;
 	}
 }

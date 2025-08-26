@@ -7,6 +7,7 @@
 struct
 {
 	int score;
+	int level;
 } GameConfig;
 
 bool InitGameConfig();
@@ -45,7 +46,7 @@ void ResetDroppingTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH]
  * 
  * @param arena The matrix representation of the tetris arena.
  * 
- * @return The score that should be awarded for clearing n rows.
+ * @return The number of rows that were simultaneously cleared.
  */
 int ClearFilledRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH]);
 

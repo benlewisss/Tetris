@@ -24,7 +24,7 @@ bool InitGraphicsConfig()
 
 bool ResizeWindow(const Sint32 windowWidth, const Sint32 windowHeight)
 {
-	const float widthBasedSize = windowWidth / (float)ARENA_WIDTH;
+	const float widthBasedSize = windowWidth / ((float)ARENA_WIDTH + (float) GraphicsConfig.sideBarGridWidth);
 	const float heightBasedSize = windowHeight / (float)ARENA_HEIGHT;
 
 	GraphicsConfig.gridSquareSize = (widthBasedSize < heightBasedSize) ? widthBasedSize : heightBasedSize;
