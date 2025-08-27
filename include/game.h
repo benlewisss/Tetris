@@ -42,13 +42,14 @@ bool CheckDroppingTetrominoCollision(const TetrominoIdentifier arena[ARENA_HEIGH
  */
 void ResetDroppingTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], DroppingTetromino* droppingTetromino);
 
-/** Scan the board for rows that should be cleared, clear them, and return the corresponding score.
+/** Scan the board for rows that should be cleared, clear them, increment the score by an appropriate amount, and
+ *  then return the number of lines that were cleared.
  * 
  * @param arena The matrix representation of the tetris arena.
  * 
  * @return The number of rows that were simultaneously cleared.
  */
-int ClearFilledRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH]);
+int ClearLines(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH]);
 
 /* TODO NEW Doc Drops everything above this row by one.
  *

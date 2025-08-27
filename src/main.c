@@ -220,7 +220,7 @@ SDL_AppResult SDL_AppIterate(void* appstate)
 	DrawDroppingTetromino(state->renderer, g_droppingTetrominoPtr);
 	DrawDroppingTetrominoGhost(state->renderer, g_arena, g_droppingTetrominoPtr);
 	DrawArena(state->renderer, g_arena);
-	DrawSideBar(state->renderer, GameConfig.score);
+	DrawSideBar(state->renderer, GameConfig.score, GameConfig.level);
 
 	GameIteration(g_arena, g_droppingTetrominoPtr);
 

@@ -88,7 +88,7 @@ bool DrawBlock(SDL_Renderer* renderer, SDL_Texture* texture, const Uint8 alpha, 
 
 	const SDL_FRect rect = {(float)x * blockSize, (float)y * blockSize, blockSize, blockSize };
 
-	if (!SDL_SetTextureAlphaMod(texture, alpha)) return false;
+	if (SDL_SetTextureAlphaMod(texture, alpha) == false) return false;
 	return SDL_RenderTexture(renderer, texture, NULL, &rect);
 }
 
@@ -125,7 +125,7 @@ bool DrawDroppingTetrominoGhost(SDL_Renderer* renderer, const TetrominoIdentifie
 	const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = droppingTetromino->shape.coordinates[droppingTetromino->rotation];
 
 	int translationY = 1;
-	while (!CheckDroppingTetrominoCollision(arena, droppingTetromino, 0, translationY++, 0)) {}
+	while (CheckDroppingTetrominoCollision(arena, droppingTetromino, 0, translationY++, 0) == false) {}
 	translationY += droppingTetromino->y - (TETROMINO_MAX_SIZE/2);
 
 	for (int i = 0; i < TETROMINO_MAX_SIZE; i++)
@@ -140,29 +140,46 @@ bool DrawDroppingTetrominoGhost(SDL_Renderer* renderer, const TetrominoIdentifie
 	return true;
 }
 
-bool DrawSideBar(SDL_Renderer* renderer, const int score)
+bool DrawSideBar(SDL_Renderer* renderer, const int score, const int level)
 {
 	// Draw sidebar background
 	SDL_SetRenderDrawColor(renderer, 20, 20, 20, 255); // Grey
-	SDL_FRect backgroundRect = { ARENA_WIDTH * GraphicsConfig.gridSquareSize, 0, GraphicsConfig.sideBarGridWidth * GraphicsConfig.gridSquareSize, ARENA_HEIGHT * GraphicsConfig.gridSquareSize };
+	const SDL_FRect backgroundRect = { ARENA_WIDTH * GraphicsConfig.gridSquareSize, 0, GraphicsConfig.sideBarGridWidth * GraphicsConfig.gridSquareSize, ARENA_HEIGHT * GraphicsConfig.gridSquareSize };
 	if (SDL_RenderRect(renderer, &backgroundRect) == false)
 		return false;
 
+
+	// The sidebar margin and the default positioning for text
+	static const float MARGIN = 1.0f;
+	SDL_FRect rect = { 
+		((float) ARENA_WIDTH + MARGIN) * GraphicsConfig.gridSquareSize,
+		GraphicsConfig.gridSquareSize,
+		GraphicsConfig.gridSquareSize * ((float) GraphicsConfig.sideBarGridWidth - MARGIN * 2),
+		GraphicsConfig.gridSquareSize * 1};
+
 	// Draw title
-	SDL_FRect titleRect = { ((ARENA_WIDTH + 1) * GraphicsConfig.gridSquareSize), (GraphicsConfig.gridSquareSize), (3 * GraphicsConfig.gridSquareSize), (1 * GraphicsConfig.gridSquareSize) };
-	SDL_RenderTexture(renderer, GraphicsConfig.titleTexture, NULL, &titleRect);
+	SDL_RenderTexture(renderer, GraphicsConfig.titleTexture, NULL, &rect);
 
-	char text[20];
+	// Draw score
+	char text[10];
 	if (SDL_snprintf(text, 8, "%06d", score) < 0) return false;
+	rect.y += GraphicsConfig.gridSquareSize;
 
-	// Here we are creating a surface every draw call for updating the score, however we can generate this surface and assign to a ptr every game iteration instead (at the cost of readability and sensibility, prob not worth it)
-	SDL_Color colorWhite = { 255,255,255,255 };
-	SDL_Surface* scoreSurface = TTF_RenderText_Blended(g_dotoRegular, text, 0, colorWhite);
-	SDL_Texture* scoreTexture = SDL_CreateTextureFromSurface(renderer, scoreSurface);
-	SDL_FRect scoreRect = { ((ARENA_WIDTH + 1) * GraphicsConfig.gridSquareSize), (GraphicsConfig.gridSquareSize) * 3, (3 * GraphicsConfig.gridSquareSize), (1 * GraphicsConfig.gridSquareSize) };
-	SDL_RenderTexture(renderer, scoreTexture, NULL, &scoreRect);
-	SDL_DestroySurface(scoreSurface);
-	SDL_DestroyTexture(scoreTexture);
+	const SDL_Color colorWhite = { 255,255,255,255 };
+	SDL_Surface* surface = TTF_RenderText_Blended(g_dotoRegular, text, 0, colorWhite);
+	SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+	if (SDL_RenderTexture(renderer, texture, NULL, &rect) == false) return false;
+
+	// Draw level
+	if (SDL_snprintf(text, 8, "LVL %03d", level) < 0) return false;
+	rect.y += GraphicsConfig.gridSquareSize;
+
+	surface = TTF_RenderText_Blended(g_dotoRegular, text, 0, colorWhite);
+	texture = SDL_CreateTextureFromSurface(renderer, surface);
+	if (SDL_RenderTexture(renderer, texture, NULL, &rect) == false) return false;
+
+	SDL_DestroySurface(surface);
+	SDL_DestroyTexture(texture);
 
 	return true;
 }

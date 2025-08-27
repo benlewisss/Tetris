@@ -6,7 +6,7 @@
 bool InitGameConfig()
 {
 	GameConfig.score = 0;
-	GameConfig.level = 0;
+	GameConfig.level = 1;
 
 	return true;
 }
@@ -14,12 +14,14 @@ bool InitGameConfig()
 bool GameIteration(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH],
                    DroppingTetromino* droppingTetromino)
 {
-
 	// The time (in milliseconds) to drop a tetromino one cell (i.e. speed) for each of the tetris levels
-	static Uint64 gravityValues[20] = {1000, 793, 618, 473, 355, 262, 190, 135, 94, 64, 43, 28, 18, 11, 7, 5, 4, 3, 2, 1};
+	static Uint64 gravityValues[MAX_LEVEL] = {1000, 793, 618, 473, 355, 262, 190, 135, 94, 64, 43, 28, 18, 11, 7, 5, 4, 3, 2, 1};
 
 	// Lock Down time - how long the player should have to move a tetromino around on the board once it has made contact with the ground
 	static int lockDownTime = 500;
+
+	// Number of lines cleared on a particular level
+	static int levelLinesCleared = 0;
 
 	// Check dropping tetromino is marked for termination and has passed Lock Down (See https://tetris.wiki/Tetris_Guideline#LockDown)
 	if (droppingTetromino->terminationTime)
@@ -35,29 +37,18 @@ bool GameIteration(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH],
 		}
 	}
 
+	levelLinesCleared += ClearLines(arena);
+
 	// Every n ticks, drop tetromino and run tetromino operations
 	static Uint64 oldTick = 0;
 
-	if (SDL_GetTicks() - oldTick >= gravityValues[GameConfig.level])
+	if (SDL_GetTicks() - oldTick >= gravityValues[GameConfig.level-1])
 	{
-		// Scoring for different line clears
-		switch (ClearFilledRows(arena))
+		if (levelLinesCleared >= 4)
 		{
-			case 1:
-				GameConfig.score += 100 * (GameConfig.level + 1);
-				break;
-			case 2:
-				GameConfig.score += 300 * (GameConfig.level + 1);
-				break;
-			case 3:
-				GameConfig.score += 500 * (GameConfig.level + 1);
-				break;
-			case 4:
-				GameConfig.score += 800 * (GameConfig.level + 1);
-				break;
-			default:
-				break;
-
+			levelLinesCleared = 0;
+			if (GameConfig.level < MAX_LEVEL) GameConfig.level++;
+			SDL_Log("NEW LEVEL %d", GameConfig.level);
 		}
 
 		SoftDropTetromino(arena, droppingTetromino);
@@ -140,7 +131,7 @@ static void DropRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], const
 	}
 }
 
-int ClearFilledRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH])
+int ClearLines(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH])
 {
 	// Number of sequential rows that have been filled
 	int numFilledRows = 0;
@@ -189,6 +180,25 @@ int ClearFilledRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH])
 		memset(arena[row], 0, ARENA_WIDTH);
 	}
 	DropRows(arena, bottomPointer, bottomPointer - topPointer);
+
+	// Scoring for different levels
+	switch (numFilledRows)
+	{
+		case 1:
+			GameConfig.score += 100 * (GameConfig.level);
+			break;
+		case 2:
+			GameConfig.score += 300 * (GameConfig.level);
+			break;
+		case 3:
+			GameConfig.score += 500 * (GameConfig.level);
+			break;
+		case 4:
+			GameConfig.score += 800 * (GameConfig.level);
+			break;
+		default:
+			break;
+	}
 
 	return numFilledRows;
 }

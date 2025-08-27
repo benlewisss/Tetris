@@ -61,6 +61,6 @@ bool DrawDroppingTetromino(SDL_Renderer* renderer, const DroppingTetromino* drop
 
 bool DrawDroppingTetrominoGhost(SDL_Renderer* renderer, const TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], const DroppingTetromino* droppingTetromino);
 
-bool DrawSideBar(SDL_Renderer* renderer, int score);
+bool DrawSideBar(SDL_Renderer* renderer, int score, int level);
 
 #endif //GRAPHICS_H
