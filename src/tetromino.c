@@ -3,6 +3,8 @@
 
 #include "tetromino.h"
 
+#include <assert.h>
+
 TetrominoShape* GetTetrominoShapeByIdentifier(const TetrominoIdentifier identifier)
 {
     // Tetromino shape and color declarations
@@ -233,14 +235,14 @@ TetrominoShape* GetTetrominoShapeByIdentifier(const TetrominoIdentifier identifi
 
     // Note: The order of this array must match the TetrominoIdentifier enum
     TetrominoShape* tetrominoes[TETROMINO_COUNT] = {&pieceI, &pieceO, &pieceT, &pieceZ, &pieceS, &pieceL, &pieceJ};
-
     return tetrominoes[identifier - 1]; // Identifiers are 1-indexed, array is 0-indexed
 }
 
 const TetrominoShape* GetRandomTetrominoShape(void)
 {
     static int dropCount = 0;
-    static TetrominoIdentifier tetrominoBag[TETROMINO_COUNT] = {I, O, T, Z, S, L, J};
+    // NOTE: Any additionally added tetrominoes should be added here
+    static TetrominoIdentifier tetrominoBag[TETROMINO_COUNT] = {I, O, T, Z, S, L, J}; 
 
     if (dropCount >= TETROMINO_COUNT)
     {
@@ -248,23 +250,23 @@ const TetrominoShape* GetRandomTetrominoShape(void)
         Shuffle(tetrominoBag, TETROMINO_COUNT);
     }
 
+    // Make return value readonly
     const TetrominoShape* tetromino = GetTetrominoShapeByIdentifier(tetrominoBag[dropCount]);
     dropCount++;
-
     return tetromino;
 }
 
 void RotateDroppingTetromino(DroppingTetromino* droppingTetromino, const int rotationAmount)
 {
     // TODO Is the following the most efficient way to do this? (No, maybe just use If statements to handle the negatives)
-    const enum Orientation newDirection = (((droppingTetromino->rotation + rotationAmount) % 4) + 4) % 4;
-    // Cant do negative modulo operations in C
-    droppingTetromino->rotation = newDirection;
+    const enum Orientation newDirection = (((droppingTetromino->orientation + rotationAmount) % 4) + 4) % 4;
+    droppingTetromino->orientation = newDirection;
 }
 
 
 static void Shuffle(int* array, const size_t n)
 {
+    // Fisher-Yates Shuffle
     if (n > 1)
     {
         for (size_t i = 0; i < n - 1; i++)

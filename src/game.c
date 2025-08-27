@@ -61,8 +61,8 @@ bool CheckDroppingTetrominoCollision(const TetrominoIdentifier arena[ARENA_HEIGH
                                      const DroppingTetromino* droppingTetromino, int translationX, int translationY,
                                      const int rotationAmount)
 {
-    const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = droppingTetromino->shape.coordinates[(((
-        droppingTetromino->rotation + rotationAmount) % 4) + 4) % 4];
+    const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = droppingTetromino->shape->coordinates[(((
+        droppingTetromino->orientation + rotationAmount) % 4) + 4) % 4];
 
     translationX += droppingTetromino->x;
     translationY += droppingTetromino->y;
@@ -91,8 +91,8 @@ void ResetDroppingTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH]
 {
     const int droppingTetrominoX = droppingTetromino->x;
     const int droppingTetrominoY = droppingTetromino->y;
-    const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = droppingTetromino->shape.coordinates[droppingTetromino
-        ->rotation];
+    const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = droppingTetromino->shape->coordinates[droppingTetromino
+        ->orientation];
 
     // Update the arena with the location of the tetromino where it has collided
     for (int i = 0; i < TETROMINO_MAX_SIZE; i++)
@@ -100,14 +100,14 @@ void ResetDroppingTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH]
         for (int j = 0; j < TETROMINO_MAX_SIZE; j++)
         {
             if (droppingTetrominoRotatedCoordinates[i][j] == false) continue;
-            arena[droppingTetrominoY + i][droppingTetrominoX + j] = droppingTetromino->shape.identifier;
+            arena[droppingTetrominoY + i][droppingTetrominoX + j] = droppingTetromino->shape->identifier;
         }
     }
 
     droppingTetromino->x = (ARENA_WIDTH - 1) / 2;
     droppingTetromino->y = 0;
-    droppingTetromino->rotation = NORTH;
-    droppingTetromino->shape = *GetTetrominoShapeByIdentifier(I); //*GetRandomTetrominoShape();
+    droppingTetromino->orientation = NORTH;
+    droppingTetromino->shape = GetRandomTetrominoShape();
     droppingTetromino->terminationTime = 0;
 }
 
@@ -207,7 +207,7 @@ bool WallKickRotateDroppingTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARE
                                      const int rotationDirection)
 {
     // 2D array of coordinate pairs (3D) representing the Wall Kick Data (see https://tetris.wiki/Super_Rotation_System).
-    // The first dimension is the rotation direction, the second dimension are one of the 5 tests, and the third dimension are the test coordinate pairs.
+    // The first dimension is the orientation direction, the second dimension are one of the 5 tests, and the third dimension are the test coordinate pairs.
     static const int8_t WALL_KICK_DATA[8][5][2] = {
         {{0, 0}, {-1, 0}, {-1, +1}, {0, -2}, {-1, -2}},
         {{0, 0}, {1, 0}, {1, -1}, {0, 2}, {1, 2}},
@@ -233,10 +233,10 @@ bool WallKickRotateDroppingTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARE
     // Valid parameter checks
     if (!(rotationDirection == -1 || rotationDirection == 1)) return false;
 
-    // One of eight possible rotation state changes (In numerical order: NORTH->EAST, EAST->NORTH, EAST->SOUTH, SOUTH->EAST, SOUTH->WEST, WEST->SOUTH, WEST->NORTH, NORTH->WEST)
+    // One of eight possible orientation state changes (In numerical order: NORTH->EAST, EAST->NORTH, EAST->SOUTH, SOUTH->EAST, SOUTH->WEST, WEST->SOUTH, WEST->NORTH, NORTH->WEST)
     int rotationStateChange = 0;
 
-    switch (droppingTetromino->rotation)
+    switch (droppingTetromino->orientation)
     {
     case NORTH:
         if (rotationDirection == -1) rotationStateChange = 7;
@@ -257,7 +257,7 @@ bool WallKickRotateDroppingTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARE
     }
 
     // Special case (The [I] tetromino(s) have differing Wall Kick data)
-    if (droppingTetromino->shape.identifier == I)
+    if (droppingTetromino->shape->identifier == I)
     {
         for (int i = 0; i < 5; i++)
         {

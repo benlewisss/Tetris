@@ -6,6 +6,8 @@
 
 #include "graphics.h"
 
+#include <stdio.h>
+
 #include "util.h"
 #include "game.h"
 #include "tetromino.h"
@@ -31,19 +33,13 @@ bool ResizeGridSquares(const Sint32 windowWidth, const Sint32 windowHeight)
 bool LoadResources(SDL_Renderer* renderer)
 {
     // Load tetromino textures
-    if (!(GetTetrominoShapeByIdentifier(I)->texture = IMG_LoadTexture(renderer, "resources/images/blocks/cyan.png"))) return
-        false;
-    if (!(GetTetrominoShapeByIdentifier(O)->texture = IMG_LoadTexture(renderer, "resources/images/blocks/yellow.png"))) return
-        false;
-    if (!(GetTetrominoShapeByIdentifier(T)->texture = IMG_LoadTexture(renderer, "resources/images/blocks/purple.png"))) return
-        false;
+    if (!(GetTetrominoShapeByIdentifier(I)->texture = IMG_LoadTexture(renderer, "resources/images/blocks/cyan.png"))) return false;
+    if (!(GetTetrominoShapeByIdentifier(O)->texture = IMG_LoadTexture(renderer, "resources/images/blocks/yellow.png"))) return false;
+    if (!(GetTetrominoShapeByIdentifier(T)->texture = IMG_LoadTexture(renderer, "resources/images/blocks/purple.png"))) return false;
     if (!(GetTetrominoShapeByIdentifier(Z)->texture = IMG_LoadTexture(renderer, "resources/images/blocks/red.png"))) return false;
-    if (!(GetTetrominoShapeByIdentifier(S)->texture = IMG_LoadTexture(renderer, "resources/images/blocks/green.png"))) return
-        false;
-    if (!(GetTetrominoShapeByIdentifier(L)->texture = IMG_LoadTexture(renderer, "resources/images/blocks/orange.png"))) return
-        false;
-    if (!(GetTetrominoShapeByIdentifier(J)->texture = IMG_LoadTexture(renderer, "resources/images/blocks/blue.png"))) return
-        false;
+    if (!(GetTetrominoShapeByIdentifier(S)->texture = IMG_LoadTexture(renderer, "resources/images/blocks/green.png"))) return false;
+    if (!(GetTetrominoShapeByIdentifier(L)->texture = IMG_LoadTexture(renderer, "resources/images/blocks/orange.png"))) return false;
+    if (!(GetTetrominoShapeByIdentifier(J)->texture = IMG_LoadTexture(renderer, "resources/images/blocks/blue.png"))) return false;
 
     // Load fonts
     graphicsData.mainFont = TTF_OpenFont("resources/fonts/doto_extra_bold.ttf", 150);
@@ -99,18 +95,16 @@ bool DrawBlock(SDL_Renderer* renderer, SDL_Texture* texture, const Uint8 alpha, 
 
 bool DrawDroppingTetromino(SDL_Renderer* renderer, const DroppingTetromino* droppingTetromino)
 {
-    SDL_Texture* droppingTetrominoTexture = droppingTetromino->shape.texture;
+    SDL_Texture* droppingTetrominoTexture = droppingTetromino->shape->texture;
     const int droppingTetrominoX = droppingTetromino->x;
     const int droppingTetrominoY = droppingTetromino->y;
-    const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = droppingTetromino->shape.coordinates[droppingTetromino
-        ->rotation];
+    const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = droppingTetromino->shape->coordinates[droppingTetromino->orientation];
 
     for (int i = 0; i < TETROMINO_MAX_SIZE; i++)
     {
         for (int j = 0; j < TETROMINO_MAX_SIZE; j++)
         {
             if (droppingTetrominoRotatedCoordinates[i][j] == false) continue;
-
             if (DrawBlock(renderer,
                           droppingTetrominoTexture,
                           255,
@@ -127,10 +121,10 @@ bool DrawDroppingTetromino(SDL_Renderer* renderer, const DroppingTetromino* drop
 bool DrawDroppingTetrominoGhost(SDL_Renderer* renderer, const TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH],
                                 const DroppingTetromino* droppingTetromino)
 {
-    SDL_Texture* droppingTetrominoTexture = droppingTetromino->shape.texture;
+    SDL_Texture* droppingTetrominoTexture = droppingTetromino->shape->texture;
     const int droppingTetrominoX = droppingTetromino->x;
-    const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = droppingTetromino->shape.coordinates[droppingTetromino
-        ->rotation];
+    const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = droppingTetromino->shape->coordinates[droppingTetromino
+        ->orientation];
 
     int translationY = 1;
     while (CheckDroppingTetrominoCollision(arena, droppingTetromino, 0, translationY++, 0) == false)

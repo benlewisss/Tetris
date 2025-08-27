@@ -60,19 +60,19 @@ static DroppingTetromino* mainDroppingTetromino;
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 {
     // Must load graphics data early on as we use it to calculate the default window size
-    if (Assert(InitGraphicsData(), "Failed to initialise graphics data!")) return SDL_APP_FAILURE;
-    if (Assert(InitGameData(), "Failed to initialise game data!")) return SDL_APP_FAILURE;
+    if (Assert(InitGraphicsData(), "Failed to initialise graphics data!\n")) return SDL_APP_FAILURE;
+    if (Assert(InitGameData(), "Failed to initialise game data!\n")) return SDL_APP_FAILURE;
 
     // Setup application metadata
-    if (Assert(SDL_SetAppMetadata("TETRIS", "1.0", "Tetris"), "Failed to initialise app metadata!")) return SDL_APP_FAILURE;
+    if (Assert(SDL_SetAppMetadata("TETRIS", "1.0", "Tetris"), "Failed to initialise app metadata!\n")) return SDL_APP_FAILURE;
 
     for (size_t i = 0; i < SDL_arraysize(EXTENDED_METADATA); i++)
     {
-        if (Assert(SDL_SetAppMetadataProperty(EXTENDED_METADATA[i].key, EXTENDED_METADATA[i].value), "Failed to set metadata properties!")) return SDL_APP_FAILURE;
+        if (Assert(SDL_SetAppMetadataProperty(EXTENDED_METADATA[i].key, EXTENDED_METADATA[i].value), "Failed to set metadata properties!\n")) return SDL_APP_FAILURE;
     }
 
-    if (Assert(SDL_Init(SDL_INIT_VIDEO), "Failed to initialise SDL!")) return SDL_APP_FAILURE;
-    if (Assert(TTF_Init(), "Failed to initialise TTF!")) return SDL_APP_FAILURE;
+    if (Assert(SDL_Init(SDL_INIT_VIDEO), "Failed to initialise SDL!\n")) return SDL_APP_FAILURE;
+    if (Assert(TTF_Init(), "Failed to initialise TTF!\n")) return SDL_APP_FAILURE;
 
     AppState* state = SDL_calloc(1, sizeof(AppState));
     if (!state) return SDL_APP_FAILURE;
@@ -87,23 +87,22 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
     const int height = (int)((float)ARENA_HEIGHT * graphicsData.gridSquareSize);
     SDL_CreateWindowAndRenderer("TETRIS", width, height, SDL_WINDOW_RESIZABLE, &state->window, &state->renderer);
 
-    if (Assert(state->window, "Window creation failed!")) return SDL_APP_FAILURE;
-    if (Assert(state->renderer, "Renderer creation failed!")) return SDL_APP_FAILURE;
+    if (Assert(state->window, "Window creation failed!\n")) return SDL_APP_FAILURE;
+    if (Assert(state->renderer, "Renderer creation failed!\n")) return SDL_APP_FAILURE;
 
     state->isRunning = true;
     *appstate = state;
 
-    // Load resources, including assigning textures to tetrominoes
-    if (Assert(LoadResources(state->renderer), "Failed to load resources!")) return SDL_APP_FAILURE;
+if (Assert(LoadResources(state->renderer), "Failed to load resources!\n")) return SDL_APP_FAILURE;
 
-    // Initialise the first dropping tetromino
-    static DroppingTetromino droppingTetromino;
-    droppingTetromino.x = (ARENA_WIDTH - 1) / 2;
-    droppingTetromino.y = 0;
-    droppingTetromino.rotation = NORTH;
-    droppingTetromino.shape = *GetRandomTetrominoShape();
-    droppingTetromino.terminationTime = 0;
-    mainDroppingTetromino = &droppingTetromino;
+// Initialise the first dropping tetromino AFTER textures are loaded
+static DroppingTetromino droppingTetromino;
+droppingTetromino.x = (ARENA_WIDTH - 1) / 2;
+droppingTetromino.y = 0;
+droppingTetromino.orientation = NORTH;
+droppingTetromino.shape = GetRandomTetrominoShape(); // textures are now valid
+droppingTetromino.terminationTime = 0;
+mainDroppingTetromino = &droppingTetromino;
 
     return SDL_APP_CONTINUE;
 }
@@ -187,13 +186,13 @@ SDL_AppResult SDL_AppIterate(void* appstate)
 
     // TODO If I am passing blockSize and arena every time to different draw calls, might it not be better to have this as a global within graphics which we just modify with setters in main()?
 
-    if (Assert(DrawDroppingTetromino(state->renderer, mainDroppingTetromino), "Failed to draw dropping tetromino!")) return SDL_APP_FAILURE;
-    if (Assert(DrawDroppingTetrominoGhost(state->renderer, mainArena, mainDroppingTetromino), "Failed to draw dropping tetromino ghost!")) return SDL_APP_FAILURE;
-    if (Assert(DrawArena(state->renderer, mainArena), "Failed to draw arena!")) return SDL_APP_FAILURE;
-    if (Assert(DrawSideBar(state->renderer, gameData.score, gameData.level), "Failed to draw sidebar!")) return SDL_APP_FAILURE;
+    if (Assert(DrawDroppingTetromino(state->renderer, mainDroppingTetromino), "Failed to draw dropping tetromino!\n")) return SDL_APP_FAILURE;
+    if (Assert(DrawDroppingTetrominoGhost(state->renderer, mainArena, mainDroppingTetromino), "Failed to draw dropping tetromino ghost!\n")) return SDL_APP_FAILURE;
+    if (Assert(DrawArena(state->renderer, mainArena), "Failed to draw arena!\n")) return SDL_APP_FAILURE;
+    if (Assert(DrawSideBar(state->renderer, gameData.score, gameData.level), "Failed to draw sidebar!\n")) return SDL_APP_FAILURE;
 
     GameIteration(mainArena, mainDroppingTetromino);
-    if (Assert(SDL_RenderPresent(state->renderer), "Failed to render previous draws!")) return SDL_APP_FAILURE;
+    if (Assert(SDL_RenderPresent(state->renderer), "Failed to render previous draws!\n")) return SDL_APP_FAILURE;
 
     return state->isRunning ? SDL_APP_CONTINUE : SDL_APP_SUCCESS; // return SDL_APP_SUCCESS to quit
 }

@@ -21,7 +21,7 @@ void GameIteration(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH],
                    DroppingTetromino* droppingTetromino);
 
 
-/** Checks whether the dropping tetromino object would collide at some given rotation
+/** Checks whether the dropping tetromino object would collide at some given orientation
  *
  * @param arena The matrix representation of the tetris arena.
  * @param droppingTetromino A pointer to the dropping tetromino object.
