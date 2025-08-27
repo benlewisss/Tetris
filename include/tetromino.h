@@ -4,30 +4,31 @@
 #include <SDL3/SDL.h>
 #include <stdbool.h>
 
-/* ENUMERATORS */
 enum Orientation
 {
-	NORTH,
-	EAST,
-	SOUTH,
-	WEST,
+    NORTH,
+    EAST,
+    SOUTH,
+    WEST,
 };
 
-typedef enum
+typedef enum TetrominoIdentifier
 {
-	I = 1,
-	O = 2,
-	T = 3,
-	Z = 4,
-	S = 5,
-	L = 6,
-	J = 7,
+    I = 1,
+    O = 2,
+    T = 3,
+    Z = 4,
+    S = 5,
+    L = 6,
+    J = 7,
 } TetrominoIdentifier;
 
-enum
+enum TetrominoConfig
 {
-	TETROMINO_COUNT = 7, // How many different tetromino identifiers there are (how many shapes)
-	TETROMINO_MAX_SIZE = 4, // The maximum dimension of a tetromino block (i.e. how big the square matrix representation of a tetromino is)
+    TETROMINO_COUNT = 7,
+    // How many different tetromino identifiers there are (how many shapes)
+    TETROMINO_MAX_SIZE = 4,
+    // The maximum dimension of a tetromino block (i.e. how big the square matrix representation of a tetromino is)
 };
 
 /**
@@ -35,9 +36,9 @@ enum
  */
 typedef struct TetrominoShape
 {
-	TetrominoIdentifier identifier;
-	SDL_Texture* texture;
-	bool coordinates[4][TETROMINO_MAX_SIZE][TETROMINO_MAX_SIZE]; // 4 Orientations in 2D Space, and a 2D matrix representation
+    TetrominoIdentifier identifier;
+    SDL_Texture* texture;
+    bool coordinates[4][TETROMINO_MAX_SIZE][TETROMINO_MAX_SIZE]; // 4 Orientations in 2D Space, and a 2D matrix representation
 } TetrominoShape;
 
 /**
@@ -45,12 +46,12 @@ typedef struct TetrominoShape
  */
 typedef struct DroppingTetromino
 {
-	int x;
-	int y;
-	enum Orientation rotation;
-	TetrominoShape shape;
-	Uint64 terminationTime; // The time at which the dropping tetromino was marked for termination
-	// TODO Possibly implement tracker for number of moves, so we can limit the number of rotations to 15 before it hard locks, preventing infinite spin (see wiki)
+    int x;
+    int y;
+    enum Orientation rotation;
+    TetrominoShape shape;
+    Uint64 terminationTime; // The time at which the dropping tetromino was marked for termination
+    // TODO Possibly implement tracker for number of moves, so we can limit the number of rotations to 15 before it hard locks, preventing infinite spin (see wiki)
 } DroppingTetromino;
 
 /**

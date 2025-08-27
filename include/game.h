@@ -6,20 +6,18 @@
 
 struct
 {
-	int score;
-	int level;
-} GameConfig;
+    int score;
+    int level;
+} gameData;
 
-bool InitGameConfig();
+bool InitGameData();
 
 /** The method handling all the game logic that should happen each frame
  * 
  * @param arena The matrix representation of the tetris arena.
  * @param droppingTetromino A pointer to the dropping tetromino object.
- * 
- * @return True if success, false otherwise.
  */
-bool GameIteration(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH],
+void GameIteration(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH],
                    DroppingTetromino* droppingTetromino);
 
 
@@ -33,7 +31,10 @@ bool GameIteration(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH],
  *
  * @return True if the tetromino would collide, false otherwise.
  */
-bool CheckDroppingTetrominoCollision(const TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], const DroppingTetromino* droppingTetromino, int translationX, int translationY, const int rotationAmount);
+bool CheckDroppingTetrominoCollision(const TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH],
+                                     const DroppingTetromino* droppingTetromino, 
+                                     int translationX, int translationY,
+                                     int rotationAmount);
 
 /** Writes the location of the dropping tetromino onto the arena, and then resets it's attributes, essentially "spawning" a new one.
  *
@@ -65,10 +66,13 @@ static void DropRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], int d
  *
  * @returns True if success, false otherwise.
  */
-bool WallKickRotateDroppingTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], DroppingTetromino* droppingTetromino, const int rotationDirection);
+bool WallKickRotateDroppingTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], DroppingTetromino* droppingTetromino,
+                                     int rotationDirection);
 
 void HardDropTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], DroppingTetromino* droppingTetromino);
 
 void SoftDropTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], DroppingTetromino* droppingTetromino);
+
+void ShiftTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], DroppingTetromino* droppingTetromino, int translation);
 
 #endif //GAME_H

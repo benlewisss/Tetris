@@ -4,16 +4,20 @@
 #include "util.h"
 #include "tetromino.h"
 
+#include <SDL3_ttf/SDL_ttf.h>
+
 struct
 {
-	float gridSquareSize; // We devise coordinates for all draw calls using this value, as it changes relative to the window size.
-	int sideBarGridWidth;
-	SDL_Texture* titleTexture;
-} GraphicsConfig;
+    float gridSquareSize; // We devise coordinates for all draw calls using this value, as it changes relative to the window size.
+    int sideBarGridWidth;
+    SDL_Texture* titleTexture;
+    TTF_Font* mainFont;
+    TTF_Font* secondaryFont;
+} graphicsData;
 
-bool InitGraphicsConfig();
+bool InitGraphicsData();
 
-bool ResizeWindow(Sint32 windowWidth, Sint32 windowHeight);
+bool ResizeGridSquares(Sint32 windowWidth, Sint32 windowHeight);
 
 /** Loads resources
  *
@@ -59,7 +63,8 @@ bool DrawBlock(SDL_Renderer* renderer, SDL_Texture* texture, Uint8 alpha, float 
  */
 bool DrawDroppingTetromino(SDL_Renderer* renderer, const DroppingTetromino* droppingTetromino);
 
-bool DrawDroppingTetrominoGhost(SDL_Renderer* renderer, const TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], const DroppingTetromino* droppingTetromino);
+bool DrawDroppingTetrominoGhost(SDL_Renderer* renderer, const TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH],
+                                const DroppingTetromino* droppingTetromino);
 
 bool DrawSideBar(SDL_Renderer* renderer, int score, int level);
 

@@ -1,6 +1,5 @@
 #define SDL_MAIN_USE_CALLBACKS 1
 
-#include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -14,27 +13,27 @@
 
 static const struct
 {
-	const char* key;
-	const char* value;
+    const char* key;
+    const char* value;
 } EXTENDED_METADATA[] =
 {
-	{SDL_PROP_APP_METADATA_CREATOR_STRING, "@benlewisss"},
-	{SDL_PROP_APP_METADATA_COPYRIGHT_STRING, "MIT"},
-	{SDL_PROP_APP_METADATA_TYPE_STRING, "Tetris"}
+    {SDL_PROP_APP_METADATA_CREATOR_STRING, "@benlewisss"},
+    {SDL_PROP_APP_METADATA_COPYRIGHT_STRING, "MIT"},
+    {SDL_PROP_APP_METADATA_TYPE_STRING, "Tetris"}
 };
 
 typedef struct
 {
-	SDL_Window* window;
-	SDL_Renderer* renderer;
-	bool isRunning;
+    SDL_Window* window;
+    SDL_Renderer* renderer;
+    bool isRunning;
 } AppState;
 
-static TetrominoIdentifier g_arena[ARENA_HEIGHT][ARENA_WIDTH] = {{0}};
-static DroppingTetromino* g_droppingTetrominoPtr;
+static TetrominoIdentifier mainArena[ARENA_HEIGHT][ARENA_WIDTH] = {{0}};
+static DroppingTetromino* mainDroppingTetromino;
 
 //// DEBUG Purposes 
-//static TetrominoIdentifier g_arena[ARENA_HEIGHT][ARENA_WIDTH] = {
+//static TetrominoIdentifier mainArena[ARENA_HEIGHT][ARENA_WIDTH] = {
 //{0,0,0,0,0,0,0,0,0,0},
 //{0,0,0,0,0,0,0,0,0,0},
 //{0,0,0,0,0,0,0,0,0,0},
@@ -56,191 +55,158 @@ static DroppingTetromino* g_droppingTetrominoPtr;
 //{1,1,1,1,0,0,1,1,1,1},
 //{1,1,1,1,1,0,1,1,1,1}, };
 
+
+
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 {
-	SDL_Log("Tetris Initialisation");
+    // Must load graphics data early on as we use it to calculate the default window size
+    if (Assert(InitGraphicsData(), "Failed to initialise graphics data!")) return SDL_APP_FAILURE;
+    if (Assert(InitGameData(), "Failed to initialise game data!")) return SDL_APP_FAILURE;
 
-	if (!InitGraphicsConfig())
-	{
-		SDL_Log("Failed to initialise graphics module: %s", SDL_GetError());
-		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Failed to initialise graphics module!", SDL_GetError(), NULL);
-		return SDL_APP_FAILURE;
-	}
+    // Setup application metadata
+    if (Assert(SDL_SetAppMetadata("TETRIS", "1.0", "Tetris"), "Failed to initialise app metadata!")) return SDL_APP_FAILURE;
 
-	if (!InitGameConfig())
-	{
-		SDL_Log("Failed to initialise graphics module: %s", SDL_GetError());
-		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Failed to initialise graphics module!", SDL_GetError(), NULL);
-		return SDL_APP_FAILURE;
-	}
+    for (size_t i = 0; i < SDL_arraysize(EXTENDED_METADATA); i++)
+    {
+        if (Assert(SDL_SetAppMetadataProperty(EXTENDED_METADATA[i].key, EXTENDED_METADATA[i].value), "Failed to set metadata properties!")) return SDL_APP_FAILURE;
+    }
 
-	// Setup application metadata
-	if (!SDL_SetAppMetadata("TETRIS", "1.0", "Tetris"))
-	{
-		return SDL_APP_FAILURE;
-	}
+    if (Assert(SDL_Init(SDL_INIT_VIDEO), "Failed to initialise SDL!")) return SDL_APP_FAILURE;
+    if (Assert(TTF_Init(), "Failed to initialise TTF!")) return SDL_APP_FAILURE;
 
-	for (size_t i = 0; i < SDL_arraysize(EXTENDED_METADATA); i++)
-	{
-		if (!SDL_SetAppMetadataProperty(EXTENDED_METADATA[i].key, EXTENDED_METADATA[i].value))
-		{
-			return SDL_APP_FAILURE;
-		}
-	}
+    AppState* state = SDL_calloc(1, sizeof(AppState));
+    if (!state) return SDL_APP_FAILURE;
 
-	if (SDL_Init(SDL_INIT_VIDEO) == false)
-	{
-		SDL_Log("Couldn't initialize SDL: %s", SDL_GetError());
-		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Couldn't initialize SDL!", SDL_GetError(), NULL);
-		return SDL_APP_FAILURE;
-	}
+    // Set default game size based on monitor resolution
+    const SDL_DisplayID displayId = SDL_GetPrimaryDisplay();
+    const SDL_DisplayMode* displayMode = SDL_GetDesktopDisplayMode(displayId);
+    ResizeGridSquares((Sint32) (displayMode->w * 0.8), (Sint32)(displayMode->h * 0.8));
 
-	if (TTF_Init() == false)
-	{
-		SDL_Log("Couldn't initialize TTF: %s", SDL_GetError());
-		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Couldn't initialize TTF!", SDL_GetError(), NULL);
-		return SDL_APP_FAILURE;
-	}
+    // TODO Create window based off resolution
+    const int width = (int)((float)(ARENA_WIDTH + graphicsData.sideBarGridWidth) * graphicsData.gridSquareSize );
+    const int height = (int)((float)ARENA_HEIGHT * graphicsData.gridSquareSize);
+    SDL_CreateWindowAndRenderer("TETRIS", width, height, SDL_WINDOW_RESIZABLE, &state->window, &state->renderer);
 
-	AppState* state = SDL_calloc(1, sizeof(AppState));
-	if (!state) return SDL_APP_FAILURE;
+    if (Assert(state->window, "Window creation failed!")) return SDL_APP_FAILURE;
+    if (Assert(state->renderer, "Renderer creation failed!")) return SDL_APP_FAILURE;
 
-	// TODO Create window based off resolution
-	SDL_CreateWindowAndRenderer("TETRIS", (ARENA_WIDTH * GraphicsConfig.gridSquareSize) + (GraphicsConfig.gridSquareSize * 5), ARENA_HEIGHT * GraphicsConfig.gridSquareSize, SDL_WINDOW_RESIZABLE, &state->window, &state->renderer);
-	if (!state->window || !state->renderer)
-	{
-		SDL_Log("Window or Renderer creation failed: %s", SDL_GetError());
-		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Window or Renderer creation failed!", SDL_GetError(), NULL);
-		SDL_DestroyWindow(state->window);
-		return SDL_APP_FAILURE;
-	}
+    state->isRunning = true;
+    *appstate = state;
 
-	state->isRunning = true;
-	*appstate = state;
+    // Load resources, including assigning textures to tetrominoes
+    if (Assert(LoadResources(state->renderer), "Failed to load resources!")) return SDL_APP_FAILURE;
 
-	// TETRIS Init
-	// Load resources, including assigning textures to tetrominoes
-	if (!LoadResources(state->renderer))
-	{
-		SDL_Log("Failed to load resources: %s", SDL_GetError());
-		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Failed to load resources!", SDL_GetError(), NULL);
-		return SDL_APP_FAILURE;
-	}
+    // Initialise the first dropping tetromino
+    static DroppingTetromino droppingTetromino;
+    droppingTetromino.x = (ARENA_WIDTH - 1) / 2;
+    droppingTetromino.y = 0;
+    droppingTetromino.rotation = NORTH;
+    droppingTetromino.shape = *GetRandomTetrominoShape();
+    droppingTetromino.terminationTime = 0;
+    mainDroppingTetromino = &droppingTetromino;
 
-	// Initialise the first dropping tetromino
-	static DroppingTetromino g_droppingTetromino;
-	g_droppingTetromino.x = (ARENA_WIDTH - 1) / 2;
-	g_droppingTetromino.y = 0;
-	g_droppingTetromino.rotation = NORTH;
-	g_droppingTetromino.shape = *GetRandomTetrominoShape();
-	g_droppingTetromino.terminationTime = 0;
-	g_droppingTetrominoPtr = &g_droppingTetromino;
-
-	return SDL_APP_CONTINUE;
+    return SDL_APP_CONTINUE;
 }
 
 SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
 {
-	AppState* state = appstate;
+    AppState* state = appstate;
 
-	// TODO Fix delay after key repetition https://lazyfoo.net/tutorials/SDL/18_key_states/index.php
-	// https://stackoverflow.com/questions/21311824/sdl2-key-repeat-delay
+    // TODO Fix delay after key repetition https://lazyfoo.net/tutorials/SDL/18_key_states/index.php
+    // https://stackoverflow.com/questions/21311824/sdl2-key-repeat-delay
 
-	switch (event->type)
-	{
-	case SDL_EVENT_QUIT:
-		state->isRunning = false;
-		break;
+    switch (event->type)
+    {
+    case SDL_EVENT_QUIT:
+        state->isRunning = false;
+        break;
 
-	case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
-		SDL_Log("Window close requested");
-		state->isRunning = false;
-		break;
+    case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
+        SDL_Log("Window close requested");
+        state->isRunning = false;
+        break;
 
-	case SDL_EVENT_WINDOW_RESIZED:
-		ResizeWindow(event->window.data1, event->window.data2);
-		
-		break;
+    case SDL_EVENT_WINDOW_RESIZED:
+        ResizeGridSquares(event->window.data1, event->window.data2);
 
-	case SDL_EVENT_KEY_DOWN:
+        break;
 
-		switch (event->key.key)
-		{
-		case SDLK_D:
-		case SDLK_RIGHT:
-			if (!CheckDroppingTetrominoCollision(g_arena, g_droppingTetrominoPtr, 1, 0, 0)) g_droppingTetrominoPtr->x++;
-			break;
-		case SDLK_A:
-		case SDLK_LEFT:
-			if (!CheckDroppingTetrominoCollision(g_arena, g_droppingTetrominoPtr, -1, 0, 0)) g_droppingTetrominoPtr->x--;
-			break;
-		case SDLK_W:
-		case SDLK_UP:
-			WallKickRotateDroppingTetromino(g_arena, g_droppingTetrominoPtr, 1);
-			break;
-		case SDLK_S:
-		case SDLK_DOWN:
-			SoftDropTetromino(g_arena, g_droppingTetrominoPtr);
-			break;
-		case SDLK_SPACE:
-			HardDropTetromino(g_arena, g_droppingTetrominoPtr);
-			break;
-		default:
-			break;
-		}
+    case SDL_EVENT_KEY_DOWN:
 
-		if (event->key.key == SDLK_ESCAPE)
-		{
-			SDL_Log("ESC pressed, exiting");
-			state->isRunning = false;
-		}
+        switch (event->key.key)
+        {
+        case SDLK_D:
+        case SDLK_RIGHT:
+            ShiftTetromino(mainArena, mainDroppingTetromino, 1);
+            break;
+        case SDLK_A:
+        case SDLK_LEFT:
+            ShiftTetromino(mainArena, mainDroppingTetromino, -1);
+            break;
+        case SDLK_W:
+        case SDLK_UP:
+            WallKickRotateDroppingTetromino(mainArena, mainDroppingTetromino, 1);
+            break;
+        case SDLK_S:
+        case SDLK_DOWN:
+            SoftDropTetromino(mainArena, mainDroppingTetromino);
+            break;
+        case SDLK_SPACE:
+            HardDropTetromino(mainArena, mainDroppingTetromino);
+            break;
+        default:
+            break;
+        }
 
-		else
-		{
-			SDL_Log("Key: %s", SDL_GetKeyName(event->key.key));
-		}
-		break;
+        if (event->key.key == SDLK_ESCAPE)
+        {
+            SDL_Log("ESC pressed, exiting!");
+            state->isRunning = false;
+        }
 
-	default:
-		break;
-	}
+        else
+        {
+            SDL_Log("Key: %s", SDL_GetKeyName(event->key.key));
+        }
+        break;
 
-	return SDL_APP_CONTINUE;
+    default:
+        break;
+    }
+
+    return SDL_APP_CONTINUE;
 }
 
 SDL_AppResult SDL_AppIterate(void* appstate)
 {
-	const AppState* state = (AppState*)appstate;
+    const AppState* state = (AppState*)appstate;
 
-	// Clear screen
-	SDL_SetRenderDrawColor(state->renderer, 17, 17, 17, 255);
-	SDL_RenderClear(state->renderer);
+    // Clear screen
+    SDL_SetRenderDrawColor(state->renderer, 17, 17, 17, 255);
+    SDL_RenderClear(state->renderer);
 
-	// TODO If I am passing blockSize and arena every time to different draw calls, might it not be better to have this as a global within graphics which we just modify with setters in main()?
-	DrawDroppingTetromino(state->renderer, g_droppingTetrominoPtr);
-	DrawDroppingTetrominoGhost(state->renderer, g_arena, g_droppingTetrominoPtr);
-	DrawArena(state->renderer, g_arena);
-	DrawSideBar(state->renderer, GameConfig.score, GameConfig.level);
+    // TODO If I am passing blockSize and arena every time to different draw calls, might it not be better to have this as a global within graphics which we just modify with setters in main()?
 
-	GameIteration(g_arena, g_droppingTetrominoPtr);
+    if (Assert(DrawDroppingTetromino(state->renderer, mainDroppingTetromino), "Failed to draw dropping tetromino!")) return SDL_APP_FAILURE;
+    if (Assert(DrawDroppingTetrominoGhost(state->renderer, mainArena, mainDroppingTetromino), "Failed to draw dropping tetromino ghost!")) return SDL_APP_FAILURE;
+    if (Assert(DrawArena(state->renderer, mainArena), "Failed to draw arena!")) return SDL_APP_FAILURE;
+    if (Assert(DrawSideBar(state->renderer, gameData.score, gameData.level), "Failed to draw sidebar!")) return SDL_APP_FAILURE;
 
-	// int width, height;
-	// SDL_GetWindowSize(state->window, &width, &height);
+    GameIteration(mainArena, mainDroppingTetromino);
+    if (Assert(SDL_RenderPresent(state->renderer), "Failed to render previous draws!")) return SDL_APP_FAILURE;
 
-	SDL_RenderPresent(state->renderer);
-
-	return state->isRunning ? SDL_APP_CONTINUE : SDL_APP_SUCCESS; // return SDL_APP_SUCCESS to quit
+    return state->isRunning ? SDL_APP_CONTINUE : SDL_APP_SUCCESS; // return SDL_APP_SUCCESS to quit
 }
 
 void SDL_AppQuit(void* appstate, SDL_AppResult result)
 {
-	SDL_Log("App Quit");
+    SDL_Log("App Quit");
 
-	if (appstate != NULL)
-	{
-		AppState* state = appstate;
-		if (state->renderer) SDL_DestroyRenderer(state->renderer);
-		if (state->window) SDL_DestroyWindow(state->window);
-		SDL_free(state);
-	}
+    if (appstate != NULL)
+    {
+        AppState* state = appstate;
+        if (state->renderer) SDL_DestroyRenderer(state->renderer);
+        if (state->window) SDL_DestroyWindow(state->window);
+        SDL_free(state);
+    }
 }
