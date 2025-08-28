@@ -16,7 +16,8 @@ void GameIteration(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], Droppin
     // The time (in milliseconds) to drop a tetromino one cell (i.e. speed) for each of the tetris levels
     static Uint64 gravityValues[MAX_LEVEL] = {1000, 793, 618, 473, 355, 262, 190, 135, 94, 64, 43, 28, 18, 11, 7, 5, 4, 3, 2, 1};
 
-    // Lock down time (in milliseconds) - how long the player should have to move a tetromino around on the board once it has made contact with the ground
+    // Lock down time (in milliseconds) - how long the player should have to move a tetromino around on the board once
+    // it has made contact with the ground
     static int lockDownTime = 500;
 
     // Number of lines cleared on a particular level
@@ -103,7 +104,7 @@ void ResetDroppingTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH]
     droppingTetromino->x = (ARENA_WIDTH - 1) / 2;
     droppingTetromino->y = 0;
     droppingTetromino->orientation = NORTH;
-    droppingTetromino->shape = GetRandomTetrominoShape();
+    droppingTetromino->shape = GetTetrominoShapeByIdentifier(I);//GetRandomTetrominoShape();
     droppingTetromino->terminationTime = 0;
 }
 
@@ -133,36 +134,43 @@ int ClearLines(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH])
     int bottomPointer = ARENA_HEIGHT - 1; // Points to the bottom
     int topPointer = ARENA_HEIGHT - 2; // Points to the penultimate bottom row
 
-    while (topPointer < bottomPointer && topPointer >= 0)
+    while (topPointer >= 0 && topPointer < bottomPointer)
     {
-        int bottomPointerSquareCount = 0;
         int topPointerSquareCount = 0;
-        
+        int bottomPointerSquareCount = 0;
+
         for (int col = 0; col < ARENA_WIDTH; col++)
         {
-            if (arena[bottomPointer][col] != 0) bottomPointerSquareCount++;
             if (arena[topPointer][col] != 0) topPointerSquareCount++;
+            if (arena[bottomPointer][col] != 0) bottomPointerSquareCount++;
         }
 
-        if (topPointerSquareCount < ARENA_WIDTH && bottomPointerSquareCount < ARENA_WIDTH)
+        const bool topRowFilled = (topPointerSquareCount >= ARENA_WIDTH);
+        const bool bottomRowFilled = (bottomPointerSquareCount >= ARENA_WIDTH);
+
+        if (!topRowFilled && !bottomRowFilled)
         {
+            // Neither row is full so we move both upwards
             topPointer--;
             bottomPointer--;
             continue;
         }
 
-        if (topPointerSquareCount >= ARENA_WIDTH)
+        if (topRowFilled)
         {
+            // Top row is full so we move the top upwards
             topPointer--;
         }
         else
         {
+            // Top row is not full but bottom row is full so we found our range
             numFilledRows = bottomPointer - topPointer;
             break;
         }
 
-        if (bottomPointerSquareCount < ARENA_WIDTH)
+        if (!bottomRowFilled)
         {
+            // Bottom row is not full so we move bottom upwards
             bottomPointer--;
         }
     }
@@ -199,7 +207,8 @@ int ClearLines(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH])
 bool WallKickDroppingTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], DroppingTetromino* droppingTetromino, const int rotationDirection)
 {
     // 2D array of coordinate pairs (3D) representing the Wall Kick Data (see https://tetris.wiki/Super_Rotation_System).
-    // The first dimension is the orientation direction, the second dimension are one of the 5 tests, and the third dimension are the test coordinate pairs.
+    // The first dimension is the orientation direction, the second dimension are one of the 5 tests, and the third
+    // dimension are the test coordinate pairs.
     static const int8_t WALL_KICK_DATA[8][5][2] = {
         {{0, 0}, {-1, 0}, {-1, +1}, {0, -2}, {-1, -2}},
         {{0, 0}, {1, 0}, {1, -1}, {0, 2}, {1, 2}},
@@ -225,7 +234,8 @@ bool WallKickDroppingTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WID
     // Valid parameter checks
     if (!(rotationDirection == -1 || rotationDirection == 1)) return false;
 
-    // One of eight possible orientation state changes (In numerical order: NORTH->EAST, EAST->NORTH, EAST->SOUTH, SOUTH->EAST, SOUTH->WEST, WEST->SOUTH, WEST->NORTH, NORTH->WEST)
+    // One of eight possible orientation state changes
+    // (In numerical order: NORTH->EAST, EAST->NORTH, EAST->SOUTH, SOUTH->EAST, SOUTH->WEST, WEST->SOUTH, WEST->NORTH, NORTH->WEST)
     int rotationStateChange = 0;
 
     switch (droppingTetromino->orientation)
@@ -253,12 +263,10 @@ bool WallKickDroppingTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WID
         ? SPECIAL_WALL_KICK_DATA
         : WALL_KICK_DATA;
 
-    const int8_t (*offsets)[2] = wallKickData[rotationStateChange];
-
     for (int i = 0; i < 5; i++)
     {
-        const int8_t dx = offsets[i][0];
-        const int8_t dy = offsets[i][1];
+        const int8_t dx = wallKickData[rotationStateChange][i][0];
+        const int8_t dy = wallKickData[rotationStateChange][i][1];
 
         if (!CheckDroppingTetrominoCollision(arena, droppingTetromino, dx, dy, rotationDirection))
         {

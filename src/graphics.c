@@ -9,6 +9,8 @@
 #include "game.h"
 #include "tetromino.h"
 
+static SDL_Texture* graphicsBlackBlock;
+
 bool InitGraphicsData(void)
 {
     graphicsData.gridSquareSize = 60;
@@ -27,6 +29,8 @@ bool LoadResources(SDL_Renderer* renderer)
     if (!(GetTetrominoShapeByIdentifier(S)->texture = IMG_LoadTexture(renderer, "resources/images/blocks/green.png"))) return false;
     if (!(GetTetrominoShapeByIdentifier(L)->texture = IMG_LoadTexture(renderer, "resources/images/blocks/orange.png"))) return false;
     if (!(GetTetrominoShapeByIdentifier(J)->texture = IMG_LoadTexture(renderer, "resources/images/blocks/blue.png"))) return false;
+
+    graphicsBlackBlock = IMG_LoadTexture(renderer, "resources/images/blocks/black.png");
 
     // Load fonts
     graphicsData.mainFont = TTF_OpenFont("resources/fonts/doto_extra_bold.ttf", 150);
@@ -65,7 +69,7 @@ bool DrawArena(SDL_Renderer* renderer, const TetrominoIdentifier arena[ARENA_HEI
                 DrawBlock(renderer, blockTexture, 255, graphicsData.gridSquareSize, col, row);
             }
 
-            // Draw grid (This is the most performance hungry operation, can optimise by drawing images instead).
+            // Draw grid
             SDL_SetRenderDrawColor(renderer, 32, 32, 32, 255); // Grey
             SDL_FRect rect = {
                 (float)col * graphicsData.gridSquareSize,
