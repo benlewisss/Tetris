@@ -3,7 +3,7 @@
 #include "util.h"
 #include "tetromino.h"
 
-bool InitGameData()
+bool InitGameData(void)
 {
     gameData.score = 0;
     gameData.level = 1;
@@ -11,22 +11,22 @@ bool InitGameData()
     return true;
 }
 
-void GameIteration(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH],
-                   DroppingTetromino* droppingTetromino)
+void GameIteration(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], DroppingTetromino* droppingTetromino)
 {
     // The time (in milliseconds) to drop a tetromino one cell (i.e. speed) for each of the tetris levels
     static Uint64 gravityValues[MAX_LEVEL] = {1000, 793, 618, 473, 355, 262, 190, 135, 94, 64, 43, 28, 18, 11, 7, 5, 4, 3, 2, 1};
 
-    // Lock Down time - how long the player should have to move a tetromino around on the board once it has made contact with the ground
+    // Lock down time (in milliseconds) - how long the player should have to move a tetromino around on the board once it has made contact with the ground
     static int lockDownTime = 500;
 
     // Number of lines cleared on a particular level
     static int levelLinesCleared = 0;
+    levelLinesCleared += ClearLines(arena);
 
     // Check dropping tetromino is marked for termination and has passed Lock Down (See https://tetris.wiki/Tetris_Guideline#LockDown)
     if (droppingTetromino->terminationTime)
     {
-        // If the tetromino is in Lock Down, but moves to a position where it can drop, then we don't want to reset it
+        // If the tetromino is in Lock Down, but moves to a position where it can drop, then we cancel the Lock Down
         if (!CheckDroppingTetrominoCollision(arena, droppingTetromino, 0, 1, 0))
         {
             droppingTetromino->terminationTime = 0;
@@ -37,18 +37,14 @@ void GameIteration(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH],
         }
     }
 
-    levelLinesCleared += ClearLines(arena);
-
-    // Every n ticks, drop tetromino and run tetromino operations
+    // Based on gravity, every n-ticks, drop tetromino and run tetromino operations
     static Uint64 oldTick = 0;
-
     if (SDL_GetTicks() - oldTick >= gravityValues[gameData.level - 1])
     {
-        if (levelLinesCleared >= 4)
+        if (levelLinesCleared >= 10)
         {
             levelLinesCleared = 0;
-            if (gameData.level < MAX_LEVEL) gameData.level++;
-            SDL_Log("NEW LEVEL %d", gameData.level);
+            if (gameData.level - 1 < MAX_LEVEL) gameData.level++;
         }
 
         SoftDropTetromino(arena, droppingTetromino);
@@ -58,11 +54,12 @@ void GameIteration(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH],
 }
 
 bool CheckDroppingTetrominoCollision(const TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH],
-                                     const DroppingTetromino* droppingTetromino, int translationX, int translationY,
+                                     const DroppingTetromino* droppingTetromino, 
+                                     int translationX, 
+                                     int translationY,
                                      const int rotationAmount)
 {
-    const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = droppingTetromino->shape->coordinates[(((
-        droppingTetromino->orientation + rotationAmount) % 4) + 4) % 4];
+    const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = droppingTetromino->shape->coordinates[((droppingTetromino->orientation + rotationAmount) % 4 + 4) % 4];
 
     translationX += droppingTetromino->x;
     translationY += droppingTetromino->y;
@@ -91,8 +88,7 @@ void ResetDroppingTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH]
 {
     const int droppingTetrominoX = droppingTetromino->x;
     const int droppingTetrominoY = droppingTetromino->y;
-    const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = droppingTetromino->shape->coordinates[droppingTetromino
-        ->orientation];
+    const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = droppingTetromino->shape->coordinates[droppingTetromino->orientation];
 
     // Update the arena with the location of the tetromino where it has collided
     for (int i = 0; i < TETROMINO_MAX_SIZE; i++)
@@ -111,12 +107,9 @@ void ResetDroppingTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH]
     droppingTetromino->terminationTime = 0;
 }
 
-/* Drops everything above this row by drop amount
- *
-*/
 static void DropRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], const int dropToRow, const int dropAmount)
 {
-    // Start scanning for filled rows from bottom of arena
+    // Start scanning for filled rows upwards from dropToRow
     for (int row = dropToRow; row > 0; row--)
     {
         int squareCount = 0;
@@ -137,14 +130,14 @@ int ClearLines(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH])
     int numFilledRows = 0;
 
     // Sliding window technique
-    int bottomPointer = ARENA_HEIGHT - 1;
-    int topPointer = ARENA_HEIGHT - 2;
+    int bottomPointer = ARENA_HEIGHT - 1; // Points to the bottom
+    int topPointer = ARENA_HEIGHT - 2; // Points to the penultimate bottom row
 
     while (topPointer < bottomPointer && topPointer >= 0)
     {
         int bottomPointerSquareCount = 0;
         int topPointerSquareCount = 0;
-
+        
         for (int col = 0; col < ARENA_WIDTH; col++)
         {
             if (arena[bottomPointer][col] != 0) bottomPointerSquareCount++;
@@ -203,8 +196,7 @@ int ClearLines(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH])
     return numFilledRows;
 }
 
-bool WallKickRotateDroppingTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], DroppingTetromino* droppingTetromino,
-                                     const int rotationDirection)
+bool WallKickDroppingTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], DroppingTetromino* droppingTetromino, const int rotationDirection)
 {
     // 2D array of coordinate pairs (3D) representing the Wall Kick Data (see https://tetris.wiki/Super_Rotation_System).
     // The first dimension is the orientation direction, the second dimension are one of the 5 tests, and the third dimension are the test coordinate pairs.
@@ -256,39 +248,24 @@ bool WallKickRotateDroppingTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARE
         break;
     }
 
-    // Special case (The [I] tetromino(s) have differing Wall Kick data)
-    if (droppingTetromino->shape->identifier == I)
+    // Pick the correct wall kick data set (I-piece has a special case)
+    const int8_t (*wallKickData)[5][2] = (droppingTetromino->shape->identifier == I)
+        ? SPECIAL_WALL_KICK_DATA
+        : WALL_KICK_DATA;
+
+    const int8_t (*offsets)[2] = wallKickData[rotationStateChange];
+
+    for (int i = 0; i < 5; i++)
     {
-        for (int i = 0; i < 5; i++)
+        const int8_t dx = offsets[i][0];
+        const int8_t dy = offsets[i][1];
+
+        if (!CheckDroppingTetrominoCollision(arena, droppingTetromino, dx, dy, rotationDirection))
         {
-            if (!CheckDroppingTetrominoCollision(arena,
-                                                 droppingTetromino,
-                                                 SPECIAL_WALL_KICK_DATA[rotationStateChange][i][0],
-                                                 SPECIAL_WALL_KICK_DATA[rotationStateChange][i][1],
-                                                 rotationDirection))
-            {
-                droppingTetromino->x += SPECIAL_WALL_KICK_DATA[rotationStateChange][i][0];
-                droppingTetromino->y += SPECIAL_WALL_KICK_DATA[rotationStateChange][i][1];
-                RotateDroppingTetromino(droppingTetromino, rotationDirection);
-                return true;
-            }
-        }
-    }
-    else
-    {
-        for (int i = 0; i < 5; i++)
-        {
-            if (!CheckDroppingTetrominoCollision(arena,
-                                                 droppingTetromino,
-                                                 WALL_KICK_DATA[rotationStateChange][i][0],
-                                                 WALL_KICK_DATA[rotationStateChange][i][1],
-                                                 rotationDirection))
-            {
-                droppingTetromino->x += WALL_KICK_DATA[rotationStateChange][i][0];
-                droppingTetromino->y += WALL_KICK_DATA[rotationStateChange][i][1];
-                RotateDroppingTetromino(droppingTetromino, rotationDirection);
-                return true;
-            }
+            droppingTetromino->x += dx;
+            droppingTetromino->y += dy;
+            RotateDroppingTetromino(droppingTetromino, rotationDirection);
+            return true;
         }
     }
 
@@ -319,7 +296,7 @@ void SoftDropTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], Dro
     }
 }
 
-void ShiftTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], DroppingTetromino* droppingTetromino, int translation)
+void ShiftTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], DroppingTetromino* droppingTetromino, const int translation)
 {
     if (!CheckDroppingTetrominoCollision(arena, droppingTetromino, translation, 0, 0)) droppingTetromino->x += translation;
 }

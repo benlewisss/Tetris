@@ -3,8 +3,6 @@
 
 #include "tetromino.h"
 
-#include <assert.h>
-
 TetrominoShape* GetTetrominoShapeByIdentifier(const TetrominoIdentifier identifier)
 {
     // Tetromino shape and color declarations

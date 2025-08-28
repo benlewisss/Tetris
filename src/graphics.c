@@ -1,31 +1,18 @@
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
 #include <SDL3_ttf/SDL_ttf.h>
-
 #include <stdbool.h>
 
 #include "graphics.h"
-
-#include <stdio.h>
 
 #include "util.h"
 #include "game.h"
 #include "tetromino.h"
 
-bool InitGraphicsData()
+bool InitGraphicsData(void)
 {
     graphicsData.gridSquareSize = 60;
     graphicsData.sideBarGridWidth = 5;
-
-    return true;
-}
-
-bool ResizeGridSquares(const Sint32 windowWidth, const Sint32 windowHeight)
-{
-    const float widthBasedSize = windowWidth / ((float)ARENA_WIDTH + (float)graphicsData.sideBarGridWidth);
-    const float heightBasedSize = windowHeight / (float)ARENA_HEIGHT;
-
-    graphicsData.gridSquareSize = (widthBasedSize < heightBasedSize) ? widthBasedSize : heightBasedSize;
 
     return true;
 }
@@ -46,13 +33,23 @@ bool LoadResources(SDL_Renderer* renderer)
     graphicsData.secondaryFont = TTF_OpenFont("resources/fonts/doto_regular.ttf", 150);
 
     // Initialise static text
-    SDL_Color colorWhite = {255, 255, 255, 255};
+    const SDL_Color colorWhite = {255, 255, 255, 255};
     SDL_Surface* textSurface = TTF_RenderText_Blended(graphicsData.mainFont, "TETRIS", 0, colorWhite);
     graphicsData.titleTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
-
     SDL_DestroySurface(textSurface);
 
     return true;
+}
+
+bool DrawBlock(SDL_Renderer* renderer, SDL_Texture* texture, const Uint8 alpha, const float blockSize, const int x, const int y)
+{
+    if (x >= ARENA_WIDTH || x < 0 || y >= ARENA_HEIGHT || y < 0)
+        return false;
+
+    const SDL_FRect rect = { (float)x * blockSize, (float)y * blockSize, blockSize, blockSize };
+
+    if (SDL_SetTextureAlphaMod(texture, alpha) == false) return false;
+    return SDL_RenderTexture(renderer, texture, NULL, &rect);
 }
 
 bool DrawArena(SDL_Renderer* renderer, const TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH])
@@ -71,8 +68,10 @@ bool DrawArena(SDL_Renderer* renderer, const TetrominoIdentifier arena[ARENA_HEI
             // Draw grid (This is the most performance hungry operation, can optimise by drawing images instead).
             SDL_SetRenderDrawColor(renderer, 32, 32, 32, 255); // Grey
             SDL_FRect rect = {
-                (float)col * graphicsData.gridSquareSize, (float)row * graphicsData.gridSquareSize,
-                graphicsData.gridSquareSize, graphicsData.gridSquareSize
+                (float)col * graphicsData.gridSquareSize,
+                (float)row * graphicsData.gridSquareSize,
+                graphicsData.gridSquareSize,
+                graphicsData.gridSquareSize
             };
             if (SDL_RenderRect(renderer, &rect) == false)
                 return false;
@@ -80,17 +79,6 @@ bool DrawArena(SDL_Renderer* renderer, const TetrominoIdentifier arena[ARENA_HEI
     }
 
     return true;
-}
-
-bool DrawBlock(SDL_Renderer* renderer, SDL_Texture* texture, const Uint8 alpha, const float blockSize, const int x, const int y)
-{
-    if (x >= ARENA_WIDTH || x < 0 || y >= ARENA_HEIGHT || y < 0)
-        return false;
-
-    const SDL_FRect rect = {(float)x * blockSize, (float)y * blockSize, blockSize, blockSize};
-
-    if (SDL_SetTextureAlphaMod(texture, alpha) == false) return false;
-    return SDL_RenderTexture(renderer, texture, NULL, &rect);
 }
 
 bool DrawDroppingTetromino(SDL_Renderer* renderer, const DroppingTetromino* droppingTetromino)
@@ -118,18 +106,16 @@ bool DrawDroppingTetromino(SDL_Renderer* renderer, const DroppingTetromino* drop
     return true;
 }
 
-bool DrawDroppingTetrominoGhost(SDL_Renderer* renderer, const TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH],
-                                const DroppingTetromino* droppingTetromino)
+bool DrawDroppingTetrominoGhost(SDL_Renderer* renderer, const TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], const DroppingTetromino* droppingTetromino)
 {
     SDL_Texture* droppingTetrominoTexture = droppingTetromino->shape->texture;
     const int droppingTetrominoX = droppingTetromino->x;
-    const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = droppingTetromino->shape->coordinates[droppingTetromino
-        ->orientation];
+    const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = droppingTetromino->shape->coordinates[droppingTetromino->orientation];
 
+    // Iterate vertically translated collision checks until the tetromino would collide, then modify
+    // this translation given the known size of the tetromino representations
     int translationY = 1;
-    while (CheckDroppingTetrominoCollision(arena, droppingTetromino, 0, translationY++, 0) == false)
-    {
-    }
+    while (CheckDroppingTetrominoCollision(arena, droppingTetromino, 0, translationY++, 0) == false) { }
     translationY += droppingTetromino->y - (TETROMINO_MAX_SIZE / 2);
 
     for (int i = 0; i < TETROMINO_MAX_SIZE; i++)
@@ -149,7 +135,7 @@ bool DrawDroppingTetrominoGhost(SDL_Renderer* renderer, const TetrominoIdentifie
     return true;
 }
 
-bool DrawSideBar(SDL_Renderer* renderer, const int score, const int level)
+bool DrawSidebar(SDL_Renderer* renderer, const int score, const int level)
 {
     // Draw sidebar background
     SDL_SetRenderDrawColor(renderer, 20, 20, 20, 255); // Grey
@@ -160,9 +146,9 @@ bool DrawSideBar(SDL_Renderer* renderer, const int score, const int level)
     if (SDL_RenderRect(renderer, &backgroundRect) == false)
         return false;
 
-
-    // The sidebar margin and the default positioning for text
+    // The sidebar margin
     static const float MARGIN = 1.0f;
+    // Default positioning for text
     SDL_FRect rect = {
         ((float)ARENA_WIDTH + MARGIN) * graphicsData.gridSquareSize,
         graphicsData.gridSquareSize,
@@ -196,6 +182,16 @@ bool DrawSideBar(SDL_Renderer* renderer, const int score, const int level)
 
     SDL_DestroySurface(surface);
     SDL_DestroyTexture(texture);
+
+    return true;
+}
+
+bool ResizeGridSquares(const Sint32 windowWidth, const Sint32 windowHeight)
+{
+    const float widthBasedSize = (float)windowWidth / ((float)ARENA_WIDTH + (float)graphicsData.sideBarGridWidth);
+    const float heightBasedSize = (float)windowHeight / (float)ARENA_HEIGHT;
+
+    graphicsData.gridSquareSize = (widthBasedSize < heightBasedSize) ? widthBasedSize : heightBasedSize;
 
     return true;
 }

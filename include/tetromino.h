@@ -89,7 +89,7 @@ const TetrominoShape* GetRandomTetrominoShape(void);
  * @param droppingTetromino A pointer to the dropping tetromino.
  * @param rotationAmount A number, either positive or negative, indicating the number of times to rotate a shape, right or left respectively.
  *
- * @returns True if success, false otherwise.
+ * @returns True on success, false otherwise.
  */
 void RotateDroppingTetromino(DroppingTetromino* droppingTetromino, int rotationAmount);
 
