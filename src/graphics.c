@@ -163,29 +163,26 @@ bool DrawSidebar(SDL_Renderer* renderer, const int score, const int level)
     // Draw title
     SDL_RenderTexture(renderer, graphicsData.titleTexture, NULL, &rect);
 
+    const SDL_Color colorWhite = { 255, 255, 255, 255 };
+
     // Draw score
-    char text[10];
+    char text[MAX_STRING_LENGTH];
     if (SDL_snprintf(text, 8, "%06d", score) < 0) return false;
     rect.y += graphicsData.gridSquareSize;
 
-    const SDL_Color colorWhite = {255, 255, 255, 255};
-    SDL_Surface* surface = TTF_RenderText_Blended(graphicsData.secondaryFont, text, 0, colorWhite);
-    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-    if (SDL_RenderTexture(renderer, texture, NULL, &rect) == false) return false;
-
-    SDL_DestroySurface(surface);
-    SDL_DestroyTexture(texture);
+    static TextCache cache001 = { {0}, NULL, false };
+    SDL_Texture* scoreTexture = GenerateTextTexture(renderer, text, &cache001, graphicsData.secondaryFont, colorWhite);
+    if (SDL_RenderTexture(renderer, scoreTexture, NULL, &rect) == false) return false;
+    //SDL_DestroyTexture(scoreTexture);
 
     // Draw level
     if (SDL_snprintf(text, 8, "LVL %03d", level) < 0) return false;
     rect.y += graphicsData.gridSquareSize;
 
-    surface = TTF_RenderText_Blended(graphicsData.secondaryFont, text, 0, colorWhite);
-    texture = SDL_CreateTextureFromSurface(renderer, surface);
-    if (SDL_RenderTexture(renderer, texture, NULL, &rect) == false) return false;
-
-    SDL_DestroySurface(surface);
-    SDL_DestroyTexture(texture);
+    static TextCache cache002 = { {0}, NULL, false };
+    SDL_Texture* levelTexture = GenerateTextTexture(renderer, text, &cache002, graphicsData.secondaryFont, colorWhite);
+    if (SDL_RenderTexture(renderer, levelTexture, NULL, &rect) == false) return false;
+    //SDL_DestroyTexture(levelTexture);
 
     return true;
 }
@@ -198,4 +195,24 @@ bool ResizeGridSquares(const Sint32 windowWidth, const Sint32 windowHeight)
     graphicsData.gridSquareSize = (widthBasedSize < heightBasedSize) ? widthBasedSize : heightBasedSize;
 
     return true;
+}
+
+SDL_Texture* GenerateTextTexture(SDL_Renderer* renderer, const char* text, TextCache* cache, TTF_Font* font, SDL_Color color)
+{
+    if (cache->valid && !strcmp(text, cache->text))
+    {
+        return cache->texture;
+    }
+
+    // Cache miss
+    SDL_DestroyTexture(cache->texture);
+    SDL_Surface* surface = TTF_RenderText_Blended(font, text, 0, color);
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_DestroySurface(surface);
+
+    memcpy(cache->text, text, MAX_STRING_LENGTH);
+    cache->texture = texture;
+    cache->valid = true;
+
+    return texture;
 }

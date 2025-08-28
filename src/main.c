@@ -187,13 +187,13 @@ SDL_AppResult SDL_AppIterate(void* appstate)
 
     // TODO If I am passing blockSize and arena every time to different draw calls, might it not be better to have this as a global within graphics which we just modify with setters in main()?
 
-    if (Assert(DrawArena(state->renderer, mainArena), "Failed to draw arena!\n")) return SDL_APP_FAILURE;
     if (Assert(DrawDroppingTetromino(state->renderer, mainDroppingTetromino), "Failed to draw dropping tetromino!\n")) return SDL_APP_FAILURE;
     if (Assert(DrawDroppingTetrominoGhost(state->renderer, mainArena, mainDroppingTetromino), "Failed to draw dropping tetromino ghost!\n")) return SDL_APP_FAILURE;
+    if (Assert(DrawArena(state->renderer, mainArena), "Failed to draw arena!\n")) return SDL_APP_FAILURE;
     if (Assert(DrawSidebar(state->renderer, gameData.score, gameData.level), "Failed to draw sidebar!\n")) return SDL_APP_FAILURE;
-
-    GameIteration(mainArena, mainDroppingTetromino);
     if (Assert(SDL_RenderPresent(state->renderer), "Failed to render previous draws!\n")) return SDL_APP_FAILURE;
+    GameIteration(mainArena, mainDroppingTetromino);
+    
 
     return state->isRunning ? SDL_APP_CONTINUE : SDL_APP_SUCCESS; // return SDL_APP_SUCCESS to quit
 }

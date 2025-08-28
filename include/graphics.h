@@ -15,6 +15,13 @@ struct
     TTF_Font* secondaryFont;
 } graphicsData;
 
+typedef struct TextCache
+{
+    char text[MAX_STRING_LENGTH];
+    SDL_Texture* texture;
+    bool valid;
+} TextCache;
+
 /**
  * Initialises the graphicsData values.
  *
@@ -97,5 +104,20 @@ bool DrawSidebar(SDL_Renderer* renderer, int score, int level);
  * @return
  */
 bool ResizeGridSquares(Sint32 windowWidth, Sint32 windowHeight);
+
+/**
+ * A wrapper method to generate a texture for text. Utilises a caching system to avoid regenerating existing textures.
+ *
+ * @note This method will NOT generate a new texture if anything other than the text has changed, i.e. A new color
+ * @note will not trigger a texture regeneration.
+ *
+ * @param renderer A pointer to the SDL renderer to use to generate the texture.
+ * @param text The text to generate.
+ * @param cache A persistent cache object.
+ * @param font The font generate the text in.
+ * @param color The color to generate the text in.
+ * @return 
+ */
+SDL_Texture* GenerateTextTexture(SDL_Renderer* renderer, char* text, TextCache* cache, TTF_Font* font, SDL_Color color);
 
 #endif //GRAPHICS_H

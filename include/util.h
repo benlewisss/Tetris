@@ -10,7 +10,8 @@ enum MainConfig
 {
 	ARENA_WIDTH = 10, // Default = 10
 	ARENA_HEIGHT = 20, // Default = 20
-	MAX_LEVEL = 20
+	MAX_LEVEL = 20,
+	MAX_STRING_LENGTH = 32,
 };
 
 /** Asserts that a given value is true, and logs an error using SDL libraries if not.
