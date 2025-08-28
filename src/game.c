@@ -23,6 +23,7 @@ void GameIteration(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], Droppin
     // Number of lines cleared on a particular level
     static int levelLinesCleared = 0;
     levelLinesCleared += ClearLines(arena);
+    
 
     // Check dropping tetromino is marked for termination and has passed Lock Down (See https://tetris.wiki/Tetris_Guideline#LockDown)
     if (droppingTetromino->terminationTime)
@@ -101,10 +102,21 @@ void ResetDroppingTetromino(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH]
         }
     }
 
+    const TetrominoShape* shape = GetRandomTetrominoShape();
+
+    // TODO Find a better way to do this: The I-Piece is the only piece who's initial starting location is offset
+    // downwards by one, so we do this in order to spawn the piece flush with the ceiling.
+    if (shape->identifier == I)
+    {
+        droppingTetromino->y = -1;
+    }
+    else
+    {
+        droppingTetromino->y = 0;
+    }
     droppingTetromino->x = (ARENA_WIDTH - 1) / 2;
-    droppingTetromino->y = 0;
     droppingTetromino->orientation = NORTH;
-    droppingTetromino->shape = GetTetrominoShapeByIdentifier(I);//GetRandomTetrominoShape();
+    droppingTetromino->shape = shape;
     droppingTetromino->terminationTime = 0;
 }
 
