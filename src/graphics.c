@@ -56,16 +56,16 @@ bool DrawBlock(SDL_Renderer* renderer, SDL_Texture* texture, const Uint8 alpha, 
     return SDL_RenderTexture(renderer, texture, NULL, &rect);
 }
 
-bool DrawArena(SDL_Renderer* renderer, const TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH])
+bool DrawArena(SDL_Renderer* renderer, GameDataContext* gameDataContext)
 {
     for (int row = 0; row < ARENA_HEIGHT; row++)
     {
         for (int col = 0; col < ARENA_WIDTH; col++)
         {
             // Draw filled blocks
-            if (arena[row][col])
+            if (gameDataContext->arena[row][col])
             {
-                SDL_Texture* blockTexture = GetTetrominoShapeByIdentifier(arena[row][col])->texture;
+                SDL_Texture* blockTexture = GetTetrominoShapeByIdentifier(gameDataContext->arena[row][col])->texture;
                 DrawBlock(renderer, blockTexture, 255, graphicsData.gridSquareSize, col, row);
             }
 
@@ -85,12 +85,12 @@ bool DrawArena(SDL_Renderer* renderer, const TetrominoIdentifier arena[ARENA_HEI
     return true;
 }
 
-bool DrawDroppingTetromino(SDL_Renderer* renderer, const DroppingTetromino* droppingTetromino)
+bool DrawDroppingTetromino(SDL_Renderer* renderer, GameDataContext* gameDataContext)
 {
-    SDL_Texture* droppingTetrominoTexture = droppingTetromino->shape->texture;
-    const int droppingTetrominoX = droppingTetromino->x;
-    const int droppingTetrominoY = droppingTetromino->y;
-    const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = droppingTetromino->shape->coordinates[droppingTetromino->orientation];
+    SDL_Texture* droppingTetrominoTexture = gameDataContext->droppingTetromino->shape->texture;
+    const int droppingTetrominoX = gameDataContext->droppingTetromino->x;
+    const int droppingTetrominoY = gameDataContext->droppingTetromino->y;
+    const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = gameDataContext->droppingTetromino->shape->coordinates[gameDataContext->droppingTetromino->orientation];
 
     for (int i = 0; i < TETROMINO_MAX_SIZE; i++)
     {
@@ -110,17 +110,17 @@ bool DrawDroppingTetromino(SDL_Renderer* renderer, const DroppingTetromino* drop
     return true;
 }
 
-bool DrawDroppingTetrominoGhost(SDL_Renderer* renderer, const TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], const DroppingTetromino* droppingTetromino)
+bool DrawDroppingTetrominoGhost(SDL_Renderer* renderer, GameDataContext* gameDataContext)
 {
-    SDL_Texture* droppingTetrominoTexture = droppingTetromino->shape->texture;
-    const int droppingTetrominoX = droppingTetromino->x;
-    const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = droppingTetromino->shape->coordinates[droppingTetromino->orientation];
+    SDL_Texture* droppingTetrominoTexture = gameDataContext->droppingTetromino->shape->texture;
+    const int droppingTetrominoX = gameDataContext->droppingTetromino->x;
+    const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = gameDataContext->droppingTetromino->shape->coordinates[gameDataContext->droppingTetromino->orientation];
 
     // Iterate vertically translated collision checks until the tetromino would collide, then modify
     // this translation given the known size of the tetromino representations
     int translationY = 1;
-    while (CheckDroppingTetrominoCollision(arena, droppingTetromino, 0, translationY++, 0) == false) { }
-    translationY += droppingTetromino->y - (TETROMINO_MAX_SIZE / 2);
+    while (CheckDroppingTetrominoCollision(gameDataContext, 0, translationY++, 0) == false) { }
+    translationY += gameDataContext->droppingTetromino->y - (TETROMINO_MAX_SIZE / 2);
 
     for (int i = 0; i < TETROMINO_MAX_SIZE; i++)
     {
@@ -139,7 +139,7 @@ bool DrawDroppingTetrominoGhost(SDL_Renderer* renderer, const TetrominoIdentifie
     return true;
 }
 
-bool DrawSidebar(SDL_Renderer* renderer, const int score, const int level)
+bool DrawSidebar(SDL_Renderer* renderer, GameDataContext* gameDataContext)
 {
     // Draw sidebar background
     SDL_SetRenderDrawColor(renderer, 20, 20, 20, 255); // Grey
@@ -167,7 +167,7 @@ bool DrawSidebar(SDL_Renderer* renderer, const int score, const int level)
 
     // Draw score
     char text[MAX_STRING_LENGTH];
-    if (SDL_snprintf(text, 8, "%06d", score) < 0) return false;
+    if (SDL_snprintf(text, 8, "%06d", gameDataContext->score) < 0) return false;
     rect.y += graphicsData.gridSquareSize;
 
     static TextCache cache001 = { {0}, NULL, false };
@@ -176,7 +176,7 @@ bool DrawSidebar(SDL_Renderer* renderer, const int score, const int level)
     //SDL_DestroyTexture(scoreTexture);
 
     // Draw level
-    if (SDL_snprintf(text, 8, "LVL %03d", level) < 0) return false;
+    if (SDL_snprintf(text, 8, "LVL %03d", gameDataContext->level) < 0) return false;
     rect.y += graphicsData.gridSquareSize;
 
     static TextCache cache002 = { {0}, NULL, false };
@@ -197,7 +197,7 @@ bool ResizeGridSquares(const Sint32 windowWidth, const Sint32 windowHeight)
     return true;
 }
 
-SDL_Texture* GenerateTextTexture(SDL_Renderer* renderer, const char* text, TextCache* cache, TTF_Font* font, SDL_Color color)
+SDL_Texture* GenerateTextTexture(SDL_Renderer* renderer, const char* text, TextCache* cache, TTF_Font* font, const SDL_Color color)
 {
     if (cache->valid && !strcmp(text, cache->text))
     {

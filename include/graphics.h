@@ -4,7 +4,7 @@
 #include <SDL3_ttf/SDL_ttf.h>
 
 #include "util.h"
-#include "tetromino.h"
+#include "game.h"
 
 struct
 {
@@ -56,21 +56,21 @@ bool DrawBlock(SDL_Renderer* renderer, SDL_Texture* texture, Uint8 alpha, float 
  * Draw the arena grid.
  *
  * @param renderer A pointer to the SDL renderer to draw to.
- * @param arena The matrix representation of the tetris arena.
+ * @param gameDataContext A struct containing the game data context.
  *
  * @returns True on success, false otherwise.
  */
-bool DrawArena(SDL_Renderer* renderer, const TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH]);
+bool DrawArena(SDL_Renderer* renderer, GameDataContext* gameDataContext);
 
 /**
  * Draw an entire tetromino on the grid.
  *
  * @param renderer A pointer to the SDL renderer to draw to.
- * @param droppingTetromino A pointer to the dropping tetromino.
+ * @param gameDataContext A struct containing the game data context.
  *
  * @returns True on success, false otherwise.
  */
-bool DrawDroppingTetromino(SDL_Renderer* renderer, const DroppingTetromino* droppingTetromino);
+bool DrawDroppingTetromino(SDL_Renderer* renderer, GameDataContext* gameDataContext);
 
 /**
  * Draw the ghost of an entire tetromino on the grid.
@@ -79,21 +79,19 @@ bool DrawDroppingTetromino(SDL_Renderer* renderer, const DroppingTetromino* drop
  * @note See "Ghost Piece": https://tetris.wiki/Tetris_Guideline
  *
  * @param renderer A pointer to the SDL renderer to draw to.
- * @param arena The matrix representation of the tetris arena.
- * @param droppingTetromino A pointer to the dropping tetromino.
+ * @param gameDataContext A struct containing the game data context.
  * @return 
  */
-bool DrawDroppingTetrominoGhost(SDL_Renderer* renderer, const TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], const DroppingTetromino* droppingTetromino);
+bool DrawDroppingTetrominoGhost(SDL_Renderer* renderer, GameDataContext* gameDataContext);
 
 /**
  * Draw the sidebar next to the arena.
  *
  * @param renderer A pointer to the SDL renderer to draw to.
- * @param score The score to draw on the sidebar.
- * @param level The level to draw on the sidebar.
+ * @param gameDataContext A struct containing the game data context.
  * @return 
  */
-bool DrawSidebar(SDL_Renderer* renderer, int score, int level);
+bool DrawSidebar(SDL_Renderer* renderer, GameDataContext* gameDataContext);
 
 /**
  * Resizes the grid square (used as a standard alignment unit) based on what would fit in the given window
