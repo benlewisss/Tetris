@@ -7,11 +7,20 @@ bool InitGameData(GameDataContext* gameDataContext)
 {
     // Initialise the first dropping tetromino AFTER textures are loaded
     static DroppingTetromino droppingTetromino;
-    droppingTetromino.x = (ARENA_WIDTH - TETROMINO_MAX_SIZE / 2) / 2;
-    droppingTetromino.y = 0;
-    droppingTetromino.orientation = NORTH;
+
     droppingTetromino.shape = GetRandomTetrominoShape();
-    droppingTetromino.terminationTime = 0;
+    if (droppingTetromino.shape->identifier == I)
+    {
+        droppingTetromino.y = -1;
+    }
+    else
+    {
+        droppingTetromino.y = 0;
+    }
+
+    droppingTetromino.x = (ARENA_WIDTH - TETROMINO_MAX_SIZE / 2) / 2;
+    droppingTetromino.orientation = NORTH;
+    droppingTetromino.terminationTick = 0;
 
     gameDataContext->score = 0;
     gameDataContext->level = 1;
@@ -34,14 +43,14 @@ void GameIteration(GameDataContext* gameDataContext)
     
 
     // Check dropping tetromino is marked for termination and has passed Lock Down (See https://tetris.wiki/Tetris_Guideline#LockDown)
-    if (gameDataContext->droppingTetromino->terminationTime)
+    if (gameDataContext->droppingTetromino->terminationTick)
     {
         // If the tetromino is in Lock Down, but moves to a position where it can drop, then we cancel the Lock Down
         if (!CheckDroppingTetrominoCollision(gameDataContext, 0, 1, 0))
         {
-            gameDataContext->droppingTetromino->terminationTime = 0;
+            gameDataContext->droppingTetromino->terminationTick = 0;
         }
-        else if (SDL_GetTicks() > (gameDataContext->droppingTetromino->terminationTime + lockDownTime))
+        else if (SDL_GetTicks() > (gameDataContext->droppingTetromino->terminationTick + lockDownTime))
         {
             ResetDroppingTetromino(gameDataContext);
         }
@@ -63,7 +72,7 @@ void GameIteration(GameDataContext* gameDataContext)
     }
 }
 
-bool CheckDroppingTetrominoCollision(GameDataContext* gameDataContext,
+bool CheckDroppingTetrominoCollision(const GameDataContext* gameDataContext,
                                      int translationX, 
                                      int translationY,
                                      const int rotationAmount)
@@ -109,11 +118,10 @@ void ResetDroppingTetromino(GameDataContext* gameDataContext)
         }
     }
 
-    const TetrominoShape* shape = GetRandomTetrominoShape();
-
+    gameDataContext->droppingTetromino->shape = GetRandomTetrominoShape();
     // TODO Find a better way to do this: The I-Piece is the only piece who's initial starting location is offset
     // downwards by one, so we do this in order to spawn the piece flush with the ceiling.
-    if (shape->identifier == I)
+    if (gameDataContext->droppingTetromino->shape->identifier == I)
     {
         gameDataContext->droppingTetromino->y = -1;
     }
@@ -123,8 +131,8 @@ void ResetDroppingTetromino(GameDataContext* gameDataContext)
     }
     gameDataContext->droppingTetromino->x = (ARENA_WIDTH - TETROMINO_MAX_SIZE / 2) / 2;
     gameDataContext->droppingTetromino->orientation = NORTH;
-    gameDataContext->droppingTetromino->shape = shape;
-    gameDataContext->droppingTetromino->terminationTime = 0;
+   
+    gameDataContext->droppingTetromino->terminationTick = 0;
 }
 
 static void DropRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], const int dropToRow, const int dropAmount)
@@ -314,7 +322,7 @@ void SoftDropTetromino(GameDataContext* gameDataContext)
 {
     if (CheckDroppingTetrominoCollision(gameDataContext, 0, 1, 0))
     {
-        if (gameDataContext->droppingTetromino->terminationTime == 0) gameDataContext->droppingTetromino->terminationTime = SDL_GetTicks();
+        if (gameDataContext->droppingTetromino->terminationTick == 0) gameDataContext->droppingTetromino->terminationTick = SDL_GetTicks();
     }
     else
     {

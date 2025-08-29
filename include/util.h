@@ -3,8 +3,6 @@
 
 #include <stdbool.h>
 
-#include "SDL3/SDL_init.h"
-
 /* Constants */
 enum MainConfig
 {
@@ -14,7 +12,8 @@ enum MainConfig
 	MAX_STRING_LENGTH = 32,
 };
 
-/** Asserts that a given value is true, and logs an error using SDL libraries if not.
+/**
+ * @brief Asserts that a given value is true, and logs an error using SDL libraries if not.
  * 
  * @param value The boolean value to assert.
  * @param errorMessage The error message that is logged upon failure.

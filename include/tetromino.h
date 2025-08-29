@@ -9,8 +9,11 @@
  */
 enum TetrominoConfig
 {
-    TETROMINO_COUNT = 7, // How many different tetromino identifiers there are (how many shapes)
-    TETROMINO_MAX_SIZE = 4, // The maximum dimension of a tetromino block (i.e. how big the square matrix representation of a tetromino is)
+    /** @brief How many different tetromino identifiers there are (i.e. how many shapes). */
+    TETROMINO_COUNT = 7,
+
+    /** @brief The maximum dimension of a tetromino block (i.e. how big the square matrix representation of a tetromino is). */
+    TETROMINO_MAX_SIZE = 4, 
 };
 
 /**
@@ -43,27 +46,46 @@ typedef enum TetrominoIdentifier
  */
 typedef struct TetrominoShape
 {
+    /** @brief The identifier for this shape */
     TetrominoIdentifier identifier;
+
+    /** @brief A pointer to the texture that belongs to this shape. */
     SDL_Texture* texture;
-    bool coordinates[4][TETROMINO_MAX_SIZE][TETROMINO_MAX_SIZE]; // 4 Orientations in 2D Space, and a 2D matrix representation
+
+    /** @brief A matrix containing four orientations (of the same shape) representing this tetromino in 2D space. */
+    bool coordinates[4][TETROMINO_MAX_SIZE][TETROMINO_MAX_SIZE];
+
 } TetrominoShape;
 
 /**
- * @brief A struct containing a Tetromino shape, coordinate location,
- * orientation and the time at which it was marked for termination
+ * @brief A struct containing the current state of the currently dropping tetromino.
+ *
+ * @details Contains the tetromino shape, coordinate location, orientation and the tick at which
+ * it was marked for termination.
  */
 typedef struct DroppingTetromino
 {
-    const TetrominoShape* shape;
+    /** @brief The x-coordinate location of the tetromino in the arena. **/
     int x;
+
+    /** @brief The y-coordinate location of the tetromino in the arena. **/
     int y;
+
+    /** @brief The current orientation of the dropping tetromino. **/
     enum Orientation orientation;
-    Uint64 terminationTime; // The time at which the dropping tetromino was marked for termination
-    // TODO Possibly implement tracker for number of moves, so we can limit the number of rotations to 15 before it hard locks, preventing infinite spin (see wiki)
+
+    /** @brief A pointer to the tetromino shape object that contains details unique to each tetromino. **/
+    const TetrominoShape* shape;
+
+    /** @brief The tick at which the dropping tetromino was marked for termination. **/
+    Uint64 terminationTick; // 
+
+    // TODO Possibly implement tracker for number of moves, so we can limit the number of rotations to 15 before
+    // it hard locks, preventing infinite spin (see wiki)
 } DroppingTetromino;
 
 /**
- * Return a pointer to a tetromino shape object using its identifier.
+ * @brief Return a pointer to a tetromino shape object using its identifier.
  *
  * @note This should be treated as a READONLY object, the only reason it is not is so we can initialise
  * the shape textures
@@ -74,7 +96,7 @@ typedef struct DroppingTetromino
 TetrominoShape* GetTetrominoShapeByIdentifier(TetrominoIdentifier identifier);
 
 /**
- * Return a pointer to a random readonly tetromino shape object.
+ * @brief Return a pointer to a random readonly tetromino shape object.
  *
  * @note The "random" selection is done using the tetris guidelines Random Generator, wherein a "bag" of the possible
  * tetrominoes is generated and dished out one by one until the bag is empty, at which point it is reshuffled.
@@ -84,7 +106,7 @@ TetrominoShape* GetTetrominoShapeByIdentifier(TetrominoIdentifier identifier);
 const TetrominoShape* GetRandomTetrominoShape(void);
 
 /**
- * Rotate a given dropping tetromino either left or right.
+ * @brief Rotate a given dropping tetromino either left or right.
  * 
  * @param droppingTetromino A pointer to the dropping tetromino.
  * @param rotationAmount A number, either positive or negative, indicating the number of times to rotate a shape, right or left respectively.
@@ -94,7 +116,7 @@ const TetrominoShape* GetRandomTetrominoShape(void);
 void RotateDroppingTetromino(DroppingTetromino* droppingTetromino, int rotationAmount);
 
 /** 
- * Shuffles a given array using a Fisher-yates shuffle.
+ * @brief Shuffles a given array using a Fisher-yates shuffle.
  *
  * @param array A pointer to an integer array.
  * @param n The size of the array.
