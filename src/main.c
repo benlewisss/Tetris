@@ -25,8 +25,10 @@ static const struct
 
 typedef struct
 {
-    SDL_Window* window;
-    SDL_Renderer* renderer;
+    GameDataContext* gameDataContext;
+    GraphicsDataContext* graphicsDataContext;
+    Fonts* fonts;
+    Textures* textures;
     bool isRunning;
 } AppState;
 
@@ -57,11 +59,11 @@ typedef struct
 
 // NOTE: Initialising the first value to zero actually initialises the entire struct to zero, including the arena
 // attribute, hence avoiding undefined behaviour.
-static GameDataContext gameDataContext = { 0 };
-static GraphicsDataContext graphicsDataContext = { 0 }; // TODO Include a pointer to these in Appstate, so they don't need to be global. You may need to SDL_Calloc them.
-
-static Fonts fonts;
-static Textures textures;
+//static GameDataContext gameDataContext = { 0 };
+//static GraphicsDataContext graphicsDataContext = { 0 }; // TODO Include a pointer to these in Appstate, so they don't need to be global. You may need to SDL_Calloc them.
+//
+//static Fonts fonts;
+//static Textures textures;
 
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 {
@@ -73,20 +75,31 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
         if (Assert(SDL_SetAppMetadataProperty(EXTENDED_METADATA[i].key, EXTENDED_METADATA[i].value), "Failed to set metadata properties!\n")) return SDL_APP_FAILURE;
     }
 
+    // Initialise SDL & TTF 
     if (Assert(SDL_Init(SDL_INIT_VIDEO), "Failed to initialise SDL!\n")) return SDL_APP_FAILURE;
     if (Assert(TTF_Init(), "Failed to initialise TTF!\n")) return SDL_APP_FAILURE;
+
+
+    GameDataContext* gameDataContext = SDL_calloc(1, sizeof(GameDataContext));
+    GraphicsDataContext* graphicsDataContext = SDL_calloc(1, sizeof(GraphicsDataContext));
+    Fonts* fonts = SDL_calloc(1, sizeof(Fonts));
+    Textures* textures = SDL_calloc(1, sizeof(Textures));
 
     AppState* state = SDL_calloc(1, sizeof(AppState));
     if (!state) return SDL_APP_FAILURE;
 
-    if (Assert(InitGraphicsData(&graphicsDataContext), "Failed to initialise graphics data!\n")) return SDL_APP_FAILURE;
+    if (Assert(InitGraphicsData(graphicsDataContext), "Failed to initialise graphics data!\n")) return SDL_APP_FAILURE;
+    if (Assert(LoadResources(graphicsDataContext, fonts, textures), "Failed to load resources!\n")) return SDL_APP_FAILURE;
+    if (Assert(InitGameData(gameDataContext), "Failed to initialise game data!\n")) return SDL_APP_FAILURE;
+
+    state->graphicsDataContext = graphicsDataContext;
+    state->gameDataContext = gameDataContext;
+    state->fonts = fonts;
+    state->textures = textures;
 
     state->isRunning = true;
     *appstate = state;
 
-    if (Assert(InitGameData(&gameDataContext), "Failed to initialise game data!\n")) return SDL_APP_FAILURE;
-
-    if (Assert(LoadResources(&graphicsDataContext, &fonts, &textures), "Failed to load resources!\n")) return SDL_APP_FAILURE;
     return SDL_APP_CONTINUE;
 }
 
@@ -109,7 +122,7 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
         break;
 
     case SDL_EVENT_WINDOW_RESIZED:
-        ResizeGridSquares(&graphicsDataContext, event->window.data1, event->window.data2);
+        ResizeGridSquares(state->graphicsDataContext, event->window.data1, event->window.data2);
 
         break;
 
@@ -119,22 +132,22 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
         {
         case SDLK_D:
         case SDLK_RIGHT:
-            ShiftTetromino(&gameDataContext, 1);
+            ShiftTetromino(state->gameDataContext, 1);
             break;
         case SDLK_A:
         case SDLK_LEFT:
-            ShiftTetromino(&gameDataContext, -1);
+            ShiftTetromino(state->gameDataContext, -1);
             break;
         case SDLK_W:
         case SDLK_UP:
-            WallKickDroppingTetromino(&gameDataContext, 1);
+            WallKickDroppingTetromino(state->gameDataContext, 1);
             break;
         case SDLK_S:
         case SDLK_DOWN:
-            SoftDropTetromino(&gameDataContext);
+            SoftDropTetromino(state->gameDataContext);
             break;
         case SDLK_SPACE:
-            HardDropTetromino(&gameDataContext);
+            HardDropTetromino(state->gameDataContext);
             break;
         default:
             break;
@@ -164,17 +177,17 @@ SDL_AppResult SDL_AppIterate(void* appstate)
     const AppState* state = (AppState*)appstate;
 
     // Clear screen
-    SDL_SetRenderDrawColor(graphicsDataContext.renderer, 17, 17, 17, 255);
-    SDL_RenderClear(graphicsDataContext.renderer);
+    SDL_SetRenderDrawColor(state->graphicsDataContext->renderer, 17, 17, 17, 255);
+    SDL_RenderClear(state->graphicsDataContext->renderer);
 
     // TODO If I am passing blockSize and arena every time to different draw calls, might it not be better to have this as a global within graphics which we just modify with setters in main()?
 
-    if (Assert(DrawDroppingTetromino(&graphicsDataContext, &gameDataContext), "Failed to draw dropping tetromino!\n")) return SDL_APP_FAILURE;
-    if (Assert(DrawDroppingTetrominoGhost(&graphicsDataContext, &gameDataContext), "Failed to draw dropping tetromino ghost!\n")) return SDL_APP_FAILURE;
-    if (Assert(DrawArena(&graphicsDataContext, &gameDataContext), "Failed to draw arena!\n")) return SDL_APP_FAILURE;
-    if (Assert(DrawSidebar(&graphicsDataContext, &fonts, &textures, &gameDataContext), "Failed to draw sidebar!\n")) return SDL_APP_FAILURE;
-    if (Assert(SDL_RenderPresent(graphicsDataContext.renderer), "Failed to render previous draws!\n")) return SDL_APP_FAILURE;
-    GameIteration(&gameDataContext);
+    if (Assert(DrawDroppingTetromino(state->graphicsDataContext, state->gameDataContext), "Failed to draw dropping tetromino!\n")) return SDL_APP_FAILURE;
+    if (Assert(DrawDroppingTetrominoGhost(state->graphicsDataContext, state->gameDataContext), "Failed to draw dropping tetromino ghost!\n")) return SDL_APP_FAILURE;
+    if (Assert(DrawArena(state->graphicsDataContext, state->gameDataContext), "Failed to draw arena!\n")) return SDL_APP_FAILURE;
+    if (Assert(DrawSidebar(state->graphicsDataContext, state->fonts, state->textures, state->gameDataContext), "Failed to draw sidebar!\n")) return SDL_APP_FAILURE;
+    if (Assert(SDL_RenderPresent(state->graphicsDataContext->renderer), "Failed to render previous draws!\n")) return SDL_APP_FAILURE;
+    GameIteration(state->gameDataContext);
     
 
     return state->isRunning ? SDL_APP_CONTINUE : SDL_APP_SUCCESS; // return SDL_APP_SUCCESS to quit
@@ -187,8 +200,12 @@ void SDL_AppQuit(void* appstate, SDL_AppResult result)
     if (appstate != NULL)
     {
         AppState* state = appstate;
-        if (graphicsDataContext.renderer) SDL_DestroyRenderer(graphicsDataContext.renderer);
-        if (graphicsDataContext.window) SDL_DestroyWindow(graphicsDataContext.window);
+        if (state->graphicsDataContext->renderer) SDL_DestroyRenderer(state->graphicsDataContext->renderer);
+        if (state->graphicsDataContext->window) SDL_DestroyWindow(state->graphicsDataContext->window);
+        SDL_free(state->gameDataContext);
+        SDL_free(state->graphicsDataContext);
+        SDL_free(state->fonts);
+        SDL_free(state->textures);
         SDL_free(state);
     }
 }
