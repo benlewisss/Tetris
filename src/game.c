@@ -5,31 +5,35 @@
 
 bool InitGameData(GameDataContext* gameDataContext)
 {
+    // TODO Use Calloc
     // Initialise the first dropping tetromino AFTER textures are loaded
-    static DroppingTetromino droppingTetromino;
+    DroppingTetromino* droppingTetromino = SDL_calloc(1, sizeof(DroppingTetromino));
+    if (!droppingTetromino) return false;
 
-    droppingTetromino.shape = GetRandomTetrominoShape();
-    if (droppingTetromino.shape->identifier == I)
+    droppingTetromino->shape = GetRandomTetrominoShape();
+    if (droppingTetromino->shape->identifier == I)
     {
-        droppingTetromino.y = -1;
+        droppingTetromino->y = -1;
     }
     else
     {
-        droppingTetromino.y = 0;
+        droppingTetromino->y = 0;
     }
 
-    droppingTetromino.x = (ARENA_WIDTH - TETROMINO_MAX_SIZE / 2) / 2;
-    droppingTetromino.orientation = NORTH;
-    droppingTetromino.terminationTick = 0;
+    droppingTetromino->x = ((ARENA_WIDTH - TETROMINO_MAX_SIZE / 2) - 1) / 2;
+    droppingTetromino->orientation = NORTH;
+    droppingTetromino->terminationTick = 0;
 
     gameDataContext->score = 0;
     gameDataContext->level = 1;
-    gameDataContext->droppingTetromino = &droppingTetromino;
+    gameDataContext->droppingTetromino = droppingTetromino;
     return true;
 }
 
 void GameIteration(GameDataContext* gameDataContext)
 {
+    // TODO Remove all uses of static variables in this program and replace with calloc!
+
     // The time (in milliseconds) to drop a tetromino one cell (i.e. speed) for each of the tetris levels
     static Uint64 gravityValues[MAX_LEVEL] = {1000, 793, 618, 473, 355, 262, 190, 135, 94, 64, 43, 28, 18, 11, 7, 5, 4, 3, 2, 1};
 
@@ -129,7 +133,7 @@ void ResetDroppingTetromino(GameDataContext* gameDataContext)
     {
         gameDataContext->droppingTetromino->y = 0;
     }
-    gameDataContext->droppingTetromino->x = (ARENA_WIDTH - TETROMINO_MAX_SIZE / 2) / 2;
+    gameDataContext->droppingTetromino->x = ((ARENA_WIDTH - TETROMINO_MAX_SIZE / 2) - 1) / 2;
     gameDataContext->droppingTetromino->orientation = NORTH;
    
     gameDataContext->droppingTetromino->terminationTick = 0;

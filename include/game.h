@@ -1,8 +1,21 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include "util.h"
 #include "tetromino.h"
+
+/**
+ * @brief Generic game configuration enum values.
+ */
+enum GameConfig
+{
+    /** @brief */
+    ARENA_WIDTH = 10,
+
+    /** @brief */
+    ARENA_HEIGHT = 20,
+};
+
+
 
 /** 
  *  @brief A struct that holds the current game state: score, level, arena and currently dropping tetromino.
@@ -16,6 +29,12 @@ typedef struct GameDataContext
 
     /** @brief Player's current level. */
     int level;
+
+    /** @brief Whether the game is currently paused. */
+    bool isPaused;
+
+    /** @brief Whether the game is currently over. */
+    bool isGameOver;
 
     /** @brief The state the of the tetris arena, where each cell is either empty or has a ::TetrominoIdentifier value. */
     TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH];

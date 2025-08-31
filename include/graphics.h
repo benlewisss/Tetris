@@ -12,7 +12,13 @@
 enum GraphicsConfig
 {
     /** @brief The width (in grid squares of size gridSquareSize) of the sidebar. */
-    SIDEBAR_GRID_WIDTH = 5,
+    SIDEBAR_GRID_WIDTH = 3,
+
+    /** @brief The width (in grid squares of size gridSquareSize) of the sidebar. */
+    WINDOW_GRID_WIDTH = 13,
+
+    /** @brief The width (in grid squares of size gridSquareSize) of the sidebar. */
+    WINDOW_GRID_HEIGHT = 20,
 };
 
 /**
@@ -34,25 +40,27 @@ typedef struct GraphicsDataContext
      */
     float gridSquareSize;
 
+    /** @brief A pointer to a TextCache object that is used to cache generated textures for text. */
+    TextCache* textCache;
+
 } GraphicsDataContext;
 
+/**
+ * @brief A struct containing fonts
+ */
 typedef struct Fonts
 {
     TTF_Font* mainFont;
     TTF_Font* secondaryFont;
 } Fonts;
 
+/**
+ * @brief A struct containing textures
+ */
 typedef struct Textures
 {
     SDL_Texture* titleTexture;
 } Textures;
-
-typedef struct TextCache
-{
-    char text[MAX_STRING_LENGTH];
-    SDL_Texture* texture;
-    bool valid;
-} TextCache;
 
 /**
  * @brief Initialises the graphicsData values.
@@ -133,6 +141,31 @@ bool DrawDroppingTetrominoGhost(GraphicsDataContext* graphicsDataContext, GameDa
  */
 bool DrawSidebar(GraphicsDataContext* graphicsDataContext, Fonts* fonts, Textures* textures, GameDataContext* gameDataContext);
 
+/** TODO FILL
+ * 
+ * @param graphicsDataContext 
+ * @param fonts 
+ * @param textures 
+ * @param gameDataContext 
+ * @return 
+ */
+bool DrawGameOverScreen(GraphicsDataContext* graphicsDataContext, const Fonts* fonts, const Textures* textures, const GameDataContext* gameDataContext);
+
+/**
+ * @brief Generate an SDL_FRect object based on a grid system that abstracts alignment and resizing.
+ *
+ * @note This method can take a fraction of a grid square as a location on the grid
+ *
+ * @param graphicsDataContext A struct containing the graphics data context.
+ * @param x The x-coordinate on the grid system of the rect
+ * @param y The y-coordinate on the grid system of the rect
+ * @param w The width of the rect, in grid squares
+ * @param h The height of the rect, in grid squares
+ *
+ * @return A pointer to an SDL_FRect object
+ */
+SDL_FRect GenerateRect(GraphicsDataContext* graphicsDataContext, float x, float y, float w, float h);
+
 /**
  * @brief Resizes the grid square (used as a standard alignment unit) based on what would fit in the given window size.
  *
@@ -152,12 +185,11 @@ bool ResizeGridSquares(GraphicsDataContext* graphicsDataContext, Sint32 windowWi
  *
  * @param graphicsDataContext A struct containing the graphics data context.
  * @param text The text to generate.
- * @param cache A persistent cache object.
  * @param font The font generate the text in.
  * @param color The color to generate the text in.
  *
  * @return A pointer to an SDL_Texture object of the specified text, font and color.
  */
-SDL_Texture* GenerateTextTexture(GraphicsDataContext* graphicsDataContext, char* text, TextCache* cache, TTF_Font* font, SDL_Color color);
+SDL_Texture* GenerateTextTexture(GraphicsDataContext* graphicsDataContext, char* text, TTF_Font* font, SDL_Color color);
 
 #endif //GRAPHICS_H

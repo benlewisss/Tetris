@@ -46,5 +46,5 @@ target_compile_definitions(Tetris PRIVATE RESOURCE_PATH="${CMAKE_BINARY_DIR}/res
 #endif()
 
 # Recommended build type for profiling on release
-# set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Build type" FORCE)
+set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Build type" FORCE)
 

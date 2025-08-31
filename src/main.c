@@ -32,8 +32,6 @@ typedef struct
     bool isRunning;
 } AppState;
 
-
-
 //// DEBUG Purposes 
 //static TetrominoIdentifier mainArena[ARENA_HEIGHT][ARENA_WIDTH] = {
 //{0,0,0,0,0,0,0,0,0,0},
@@ -56,14 +54,6 @@ typedef struct
 //{1,1,0,0,0,0,1,1,1,1},
 //{1,1,1,1,0,0,1,1,1,1},
 //{1,1,1,1,1,0,1,1,1,1}, };
-
-// NOTE: Initialising the first value to zero actually initialises the entire struct to zero, including the arena
-// attribute, hence avoiding undefined behaviour.
-//static GameDataContext gameDataContext = { 0 };
-//static GraphicsDataContext graphicsDataContext = { 0 }; // TODO Include a pointer to these in Appstate, so they don't need to be global. You may need to SDL_Calloc them.
-//
-//static Fonts fonts;
-//static Textures textures;
 
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 {
@@ -180,12 +170,12 @@ SDL_AppResult SDL_AppIterate(void* appstate)
     SDL_SetRenderDrawColor(state->graphicsDataContext->renderer, 17, 17, 17, 255);
     SDL_RenderClear(state->graphicsDataContext->renderer);
 
-    // TODO If I am passing blockSize and arena every time to different draw calls, might it not be better to have this as a global within graphics which we just modify with setters in main()?
-
+    // TODO Move all of these grapgics and rendering calls into one method in graphics.c
     if (Assert(DrawDroppingTetromino(state->graphicsDataContext, state->gameDataContext), "Failed to draw dropping tetromino!\n")) return SDL_APP_FAILURE;
     if (Assert(DrawDroppingTetrominoGhost(state->graphicsDataContext, state->gameDataContext), "Failed to draw dropping tetromino ghost!\n")) return SDL_APP_FAILURE;
     if (Assert(DrawArena(state->graphicsDataContext, state->gameDataContext), "Failed to draw arena!\n")) return SDL_APP_FAILURE;
     if (Assert(DrawSidebar(state->graphicsDataContext, state->fonts, state->textures, state->gameDataContext), "Failed to draw sidebar!\n")) return SDL_APP_FAILURE;
+    DrawGameOverScreen(state->graphicsDataContext, state->fonts, state->textures, state->gameDataContext);
     if (Assert(SDL_RenderPresent(state->graphicsDataContext->renderer), "Failed to render previous draws!\n")) return SDL_APP_FAILURE;
     GameIteration(state->gameDataContext);
     
@@ -202,6 +192,7 @@ void SDL_AppQuit(void* appstate, SDL_AppResult result)
         AppState* state = appstate;
         if (state->graphicsDataContext->renderer) SDL_DestroyRenderer(state->graphicsDataContext->renderer);
         if (state->graphicsDataContext->window) SDL_DestroyWindow(state->graphicsDataContext->window);
+        SDL_free(state->gameDataContext->droppingTetromino);
         SDL_free(state->gameDataContext);
         SDL_free(state->graphicsDataContext);
         SDL_free(state->fonts);
