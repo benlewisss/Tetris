@@ -10,32 +10,7 @@ enum MainConfig
 {
 	MAX_LEVEL = 20,
 	MAX_STRING_LENGTH = 32,
-    TEXT_CACHE_SIZE = 128,
 };
-
-typedef struct TextCacheEntry
-{
-    char text[MAX_STRING_LENGTH];
-    SDL_Texture* texture;
-    struct TextCacheEntry* next;
-} TextCacheEntry;
-
-typedef struct TextCache
-{
-    TextCacheEntry* buckets[TEXT_CACHE_SIZE];
-} TextCache;
-
-Uint32 Djb2Hash(char* string);
-
-TextCache* TextCacheCreate(void);
-
-bool TextCacheDestroy(TextCache* textCache);
-
-SDL_Texture* TextCacheGet(TextCache* textCache, char* string);
-
-bool TextCachePut(TextCache* textCache, char* string, SDL_Texture* texture);
-
-bool TextCacheRemove(TextCache* textCache, char* string);
 
 /**
  * @brief Asserts that a given value is true, and logs an error using SDL libraries if not.

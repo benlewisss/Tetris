@@ -40,13 +40,10 @@ typedef struct GraphicsDataContext
      */
     float gridSquareSize;
 
-    /** @brief A pointer to a TextCache object that is used to cache generated textures for text. */
-    TextCache* textCache;
-
 } GraphicsDataContext;
 
 /**
- * @brief A struct containing fonts
+ * @brief A struct containing fonts.
  */
 typedef struct Fonts
 {
@@ -55,12 +52,19 @@ typedef struct Fonts
 } Fonts;
 
 /**
- * @brief A struct containing textures
+ * @brief A struct containing textures.
  */
 typedef struct Textures
 {
     SDL_Texture* titleTexture;
 } Textures;
+
+typedef struct TextCache
+{
+    char text[MAX_STRING_LENGTH];
+    SDL_Texture* texture;
+    bool valid;
+} TextCache;
 
 /**
  * @brief Initialises the graphicsData values.
@@ -141,7 +145,7 @@ bool DrawDroppingTetrominoGhost(GraphicsDataContext* graphicsDataContext, GameDa
  */
 bool DrawSidebar(GraphicsDataContext* graphicsDataContext, Fonts* fonts, Textures* textures, GameDataContext* gameDataContext);
 
-/** TODO FILL
+/** TODO Fill out
  * 
  * @param graphicsDataContext 
  * @param fonts 
@@ -185,11 +189,12 @@ bool ResizeGridSquares(GraphicsDataContext* graphicsDataContext, Sint32 windowWi
  *
  * @param graphicsDataContext A struct containing the graphics data context.
  * @param text The text to generate.
+ * @param cache A persistent cache object.
  * @param font The font generate the text in.
  * @param color The color to generate the text in.
  *
  * @return A pointer to an SDL_Texture object of the specified text, font and color.
  */
-SDL_Texture* GenerateTextTexture(GraphicsDataContext* graphicsDataContext, char* text, TTF_Font* font, SDL_Color color);
+SDL_Texture* GenerateTextTexture(GraphicsDataContext* graphicsDataContext, char* text, TextCache* cache, TTF_Font* font, SDL_Color color);
 
 #endif //GRAPHICS_H
