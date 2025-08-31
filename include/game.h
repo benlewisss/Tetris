@@ -8,10 +8,10 @@
  */
 enum GameConfig
 {
-    /** @brief */
+    /** @brief The width of the game arena.*/
     ARENA_WIDTH = 10,
 
-    /** @brief */
+    /** @brief The height of the game arena.*/
     ARENA_HEIGHT = 20,
 };
 
@@ -73,7 +73,7 @@ void GameIteration(GameDataContext* gameDataContext);
  *
  * @return True if the tetromino would collide, false otherwise.
  */
-bool CheckDroppingTetrominoCollision(GameDataContext* gameDataContext,
+bool WillDroppingTetrominoCollide(GameDataContext* gameDataContext,
                                      int translationX, int translationY,
                                      int rotationAmount);
 

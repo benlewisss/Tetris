@@ -14,10 +14,10 @@ enum GraphicsConfig
     /** @brief The width (in grid squares of size gridSquareSize) of the sidebar. */
     SIDEBAR_GRID_WIDTH = 3,
 
-    /** @brief The width (in grid squares of size gridSquareSize) of the sidebar. */
+    /** @brief The width (in grid squares of size gridSquareSize) of the window. */
     WINDOW_GRID_WIDTH = 13,
 
-    /** @brief The width (in grid squares of size gridSquareSize) of the sidebar. */
+    /** @brief The height (in grid squares of size gridSquareSize) of the window. */
     WINDOW_GRID_HEIGHT = 20,
 };
 
@@ -153,22 +153,7 @@ bool DrawSidebar(GraphicsDataContext* graphicsDataContext, Fonts* fonts, Texture
  * @param gameDataContext 
  * @return 
  */
-bool DrawGameOverScreen(GraphicsDataContext* graphicsDataContext, const Fonts* fonts, const Textures* textures, const GameDataContext* gameDataContext);
-
-/**
- * @brief Generate an SDL_FRect object based on a grid system that abstracts alignment and resizing.
- *
- * @note This method can take a fraction of a grid square as a location on the grid
- *
- * @param graphicsDataContext A struct containing the graphics data context.
- * @param x The x-coordinate on the grid system of the rect
- * @param y The y-coordinate on the grid system of the rect
- * @param w The width of the rect, in grid squares
- * @param h The height of the rect, in grid squares
- *
- * @return A pointer to an SDL_FRect object
- */
-SDL_FRect GenerateRect(GraphicsDataContext* graphicsDataContext, float x, float y, float w, float h);
+bool DrawGameOverScreen(GraphicsDataContext* graphicsDataContext, Fonts* fonts, Textures* textures, GameDataContext* gameDataContext);
 
 /**
  * @brief Resizes the grid square (used as a standard alignment unit) based on what would fit in the given window size.
@@ -180,6 +165,39 @@ SDL_FRect GenerateRect(GraphicsDataContext* graphicsDataContext, float x, float 
  * @return True on success, false otherwise.
  */
 bool ResizeGridSquares(GraphicsDataContext* graphicsDataContext, Sint32 windowWidth, Sint32 windowHeight);
+
+/**
+ * @brief Render text centered within given bounds (specified in grid squares).
+ * 
+ * @param graphicsDataContext A struct containing the graphics data context.
+ * @param x The x-coordinate on the grid system of the rect.
+ * @param y The y-coordinate on the grid system of the rect.
+ * @param width The width of the rect, in grid squares.
+ * @param height The height of the rect, in grid squares.
+ * @param margin The margin of the generated text.
+ * @param text The text to generate.
+ * @param cache A persistent cache object.
+ * @param font The font generate the text in.
+ * @param color The color to generate the text in.
+ *
+ * @return True if success, false otherwise.
+ */
+bool RenderText(GraphicsDataContext* graphicsDataContext, float x, float y, float width, float height, float margin, char* text, TextCache* cache, TTF_Font* font, SDL_Color color);
+
+/**
+ * @brief Generate an SDL_FRect object based on a grid system that abstracts alignment and resizing.
+ *
+ * @note This method can take a fraction of a grid square as a location on the grid.
+ *
+ * @param graphicsDataContext A struct containing the graphics data context.
+ * @param x The x-coordinate on the grid system of the rect.
+ * @param y The y-coordinate on the grid system of the rect.
+ * @param width The width of the rect, in grid squares.
+ * @param height The height of the rect, in grid squares.
+ *
+ * @return A pointer to an SDL_FRect object
+ */
+SDL_FRect GenerateRect(GraphicsDataContext* graphicsDataContext, float x, float y, float width, float height);
 
 /**
  * @brief A wrapper method to generate a texture for text. Utilises a caching system to avoid regenerating existing textures.

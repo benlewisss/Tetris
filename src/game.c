@@ -50,7 +50,7 @@ void GameIteration(GameDataContext* gameDataContext)
     if (gameDataContext->droppingTetromino->terminationTick)
     {
         // If the tetromino is in Lock Down, but moves to a position where it can drop, then we cancel the Lock Down
-        if (!CheckDroppingTetrominoCollision(gameDataContext, 0, 1, 0))
+        if (!WillDroppingTetrominoCollide(gameDataContext, 0, 1, 0))
         {
             gameDataContext->droppingTetromino->terminationTick = 0;
         }
@@ -76,7 +76,7 @@ void GameIteration(GameDataContext* gameDataContext)
     }
 }
 
-bool CheckDroppingTetrominoCollision(const GameDataContext* gameDataContext,
+bool WillDroppingTetrominoCollide(const GameDataContext* gameDataContext,
                                      int translationX, 
                                      int translationY,
                                      const int rotationAmount)
@@ -90,7 +90,7 @@ bool CheckDroppingTetrominoCollision(const GameDataContext* gameDataContext,
     {
         for (int j = 0; j < TETROMINO_MAX_SIZE; j++)
         {
-            if (droppingTetrominoRotatedCoordinates[i][j] == false) continue;
+            if (!droppingTetrominoRotatedCoordinates[i][j]) continue;
 
             const int offsetX = translationX + j;
             const int offsetY = translationY + i;
@@ -117,7 +117,7 @@ void ResetDroppingTetromino(GameDataContext* gameDataContext)
     {
         for (int j = 0; j < TETROMINO_MAX_SIZE; j++)
         {
-            if (droppingTetrominoRotatedCoordinates[i][j] == false) continue;
+            if (!droppingTetrominoRotatedCoordinates[i][j]) continue;
             gameDataContext->arena[droppingTetrominoY + i][droppingTetrominoX + j] = gameDataContext->droppingTetromino->shape->identifier;
         }
     }
@@ -299,7 +299,7 @@ bool WallKickDroppingTetromino(GameDataContext* gameDataContext, const int rotat
         const int8_t dx = wallKickData[rotationStateChange][i][0];
         const int8_t dy = wallKickData[rotationStateChange][i][1];
 
-        if (!CheckDroppingTetrominoCollision(gameDataContext, dx, dy, rotationDirection))
+        if (!WillDroppingTetrominoCollide(gameDataContext, dx, dy, rotationDirection))
         {
             gameDataContext->droppingTetromino->x += dx;
             gameDataContext->droppingTetromino->y += dy;
@@ -313,7 +313,7 @@ bool WallKickDroppingTetromino(GameDataContext* gameDataContext, const int rotat
 
 void HardDropTetromino(GameDataContext* gameDataContext)
 {
-    while (!CheckDroppingTetrominoCollision(gameDataContext, 0, 1, 0))
+    while (!WillDroppingTetrominoCollide(gameDataContext, 0, 1, 0))
     {
         gameDataContext->score += 2;
         gameDataContext->droppingTetromino->y++;
@@ -324,7 +324,7 @@ void HardDropTetromino(GameDataContext* gameDataContext)
 
 void SoftDropTetromino(GameDataContext* gameDataContext)
 {
-    if (CheckDroppingTetrominoCollision(gameDataContext, 0, 1, 0))
+    if (WillDroppingTetrominoCollide(gameDataContext, 0, 1, 0))
     {
         if (gameDataContext->droppingTetromino->terminationTick == 0) gameDataContext->droppingTetromino->terminationTick = SDL_GetTicks();
     }
@@ -337,5 +337,5 @@ void SoftDropTetromino(GameDataContext* gameDataContext)
 
 void ShiftTetromino(GameDataContext* gameDataContext, const int translation)
 {
-    if (!CheckDroppingTetrominoCollision(gameDataContext, translation, 0, 0)) gameDataContext->droppingTetromino->x += translation;
+    if (!WillDroppingTetrominoCollide(gameDataContext, translation, 0, 0)) gameDataContext->droppingTetromino->x += translation;
 }

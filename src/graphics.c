@@ -90,7 +90,7 @@ bool DrawArena(GraphicsDataContext* graphicsDataContext, const GameDataContext* 
             // Draw grid
             SDL_SetRenderDrawColor(graphicsDataContext->renderer, 32, 32, 32, 255); // Grey
             SDL_FRect rect = GenerateRect(graphicsDataContext, (float)col, (float)row, 1, 1);
-            if (SDL_RenderRect(graphicsDataContext->renderer, &rect) == false)
+            if (!SDL_RenderRect(graphicsDataContext->renderer, &rect))
                 return false;
         }
     }
@@ -115,12 +115,12 @@ bool DrawDroppingTetromino(GraphicsDataContext* graphicsDataContext, const GameD
     {
         for (int j = 0; j < TETROMINO_MAX_SIZE; j++)
         {
-            if (droppingTetrominoRotatedCoordinates[i][j] == false) continue;
-            if (DrawBlock(graphicsDataContext,
+            if (!droppingTetrominoRotatedCoordinates[i][j]) continue;
+            if (!DrawBlock(graphicsDataContext,
                           droppingTetrominoTexture,
                           255,
                           droppingTetrominoX + j,
-                          droppingTetrominoY + i) == false)
+                          droppingTetrominoY + i))
                 return false;
         }
     }
@@ -144,19 +144,19 @@ bool DrawDroppingTetrominoGhost(GraphicsDataContext* graphicsDataContext, GameDa
     // Iterate vertically translated collision checks until the tetromino would collide, then modify
     // this translation given the known size of the tetromino representations
     int translationY = 1;
-    while (CheckDroppingTetrominoCollision(gameDataContext, 0, translationY++, 0) == false) { }
+    while (!WillDroppingTetrominoCollide(gameDataContext, 0, translationY++, 0)) { }
     translationY += droppingTetromino->y - (TETROMINO_MAX_SIZE / 2);
 
     for (int i = 0; i < TETROMINO_MAX_SIZE; i++)
     {
         for (int j = 0; j < TETROMINO_MAX_SIZE; j++)
         {
-            if (droppingTetrominoRotatedCoordinates[i][j] == false) continue;
-            if (DrawBlock(graphicsDataContext,
+            if (!droppingTetrominoRotatedCoordinates[i][j]) continue;
+            if (!DrawBlock(graphicsDataContext,
                           droppingTetrominoTexture,
                           50,
                           droppingTetrominoX + j,
-                          translationY + i) == false) return false;
+                          translationY + i)) return false;
         }
     }
 
@@ -170,36 +170,26 @@ bool DrawSidebar(GraphicsDataContext* graphicsDataContext, const Fonts* fonts, c
     // Draw sidebar background
     SDL_SetRenderDrawColor(graphicsDataContext->renderer, 20, 20, 20, 255); // Grey
     const SDL_FRect backgroundRect = GenerateRect(graphicsDataContext, ARENA_WIDTH, 0, SIDEBAR_GRID_WIDTH, WINDOW_GRID_HEIGHT);
-    if (SDL_RenderRect(graphicsDataContext->renderer, &backgroundRect) == false)
+    if (!SDL_RenderRect(graphicsDataContext->renderer, &backgroundRect))
         return false;
 
-    // The sidebar margin
-    const float margin = 0.25f;
-    // Default positioning for text
-    SDL_FRect rect = GenerateRect(graphicsDataContext, (float)ARENA_WIDTH + margin, 1, (float)SIDEBAR_GRID_WIDTH - (margin * 2), 1);
-
-    // Draw title
-    SDL_RenderTexture(graphicsDataContext->renderer, textures->titleTexture, NULL, &rect);
-
     const SDL_Color colorWhite = { 255, 255, 255, 255 };
+
+    static TextCache cache001 = { 0 };
+    if (!RenderText(graphicsDataContext, ARENA_WIDTH, 0, SIDEBAR_GRID_WIDTH, 1, 0.1f, "TETRIS", &cache001, fonts->mainFont, colorWhite)) return false;
 
     // Draw score
     char text[MAX_STRING_LENGTH];
     if (SDL_snprintf(text, 8, "%06d", gameDataContext->score) < 0) return false;
-    rect.y += graphicsDataContext->gridSquareSize;
 
-    // TODO Implement a hashmap so we don't need to manually define a cache entry
-    static TextCache cache001 = { 0 };
-    SDL_Texture* scoreTexture = GenerateTextTexture(graphicsDataContext, text, &cache001, fonts->secondaryFont, colorWhite);
-    if (SDL_RenderTexture(graphicsDataContext->renderer, scoreTexture, NULL, &rect) == false) return false;
+    static TextCache cache002 = { 0 };
+    if (!RenderText(graphicsDataContext, ARENA_WIDTH, 2, SIDEBAR_GRID_WIDTH, 1, 0.1f, text, &cache002, fonts->secondaryFont, colorWhite)) return false;
 
     // Draw level
     if (SDL_snprintf(text, 8, "LVL %03d", gameDataContext->level) < 0) return false;
-    rect.y += graphicsDataContext->gridSquareSize;
 
-    static TextCache cache002 = { 0 };
-    SDL_Texture* levelTexture = GenerateTextTexture(graphicsDataContext, text, &cache002, fonts->secondaryFont, colorWhite);
-    if (SDL_RenderTexture(graphicsDataContext->renderer, levelTexture, NULL, &rect) == false) return false;
+    static TextCache cache003 = { 0 };
+    if (!RenderText(graphicsDataContext, ARENA_WIDTH, 3, SIDEBAR_GRID_WIDTH, 1, 0.1f, text, &cache003, fonts->secondaryFont, colorWhite)) return false;
 
     return true;
 }
@@ -211,31 +201,13 @@ bool DrawGameOverScreen(GraphicsDataContext* graphicsDataContext, const Fonts* f
     // Draw menu background
     SDL_SetRenderDrawColor(graphicsDataContext->renderer, 10, 10, 10, 200); // Grey
     const SDL_FRect backgroundRect = GenerateRect(graphicsDataContext, 0, 0, ARENA_WIDTH, ARENA_HEIGHT);
-    if (SDL_RenderFillRect(graphicsDataContext->renderer, &backgroundRect) == false)
-        return false;
-
-    // Maybe abstract the centering of text within some grid squares
-    const SDL_FRect rect = GenerateRect(graphicsDataContext, (float)ARENA_WIDTH / 2 - 4, (float)ARENA_HEIGHT / 2 - 2, (float)8, 2);
+    if (!SDL_RenderFillRect(graphicsDataContext->renderer, &backgroundRect)) return false;
 
     // Draw title
     static TextCache cache001 = { 0 };
-    SDL_Texture* scoreTexture = GenerateTextTexture(graphicsDataContext, "GAME OVER", &cache001, fonts->mainFont, colorWhite);
-    if (SDL_RenderTexture(graphicsDataContext->renderer, scoreTexture, NULL, &rect) == false) return false;
+    if (!RenderText(graphicsDataContext, 0, 0, ARENA_WIDTH, ARENA_HEIGHT, 0.5f, "GAME OVER", &cache001, fonts->mainFont, colorWhite)) return false;
 
     return true;
-}  
-
-SDL_FRect GenerateRect(const GraphicsDataContext* graphicsDataContext, const float x, const float y, const float w, const float h)
-{
-    // TODO Utilise a hashmap (same one you will implement for text) to cache rect sizes as well!
-    const SDL_FRect rect = {
-    x * graphicsDataContext->gridSquareSize,
-    y * graphicsDataContext->gridSquareSize,
-    w * graphicsDataContext->gridSquareSize,
-    h * graphicsDataContext->gridSquareSize
-    };
-
-    return rect;
 }
 
 bool ResizeGridSquares(GraphicsDataContext* graphicsDataContext, const Sint32 windowWidth, const Sint32 windowHeight)
@@ -248,6 +220,52 @@ bool ResizeGridSquares(GraphicsDataContext* graphicsDataContext, const Sint32 wi
     return true;
 }
 
+bool RenderText(GraphicsDataContext* graphicsDataContext, const float x, const float y, const float width, const float height, const float margin, char* text, TextCache* cache, TTF_Font* font, const SDL_Color color)
+{
+    // TODO Maybe delegate the caching system to RenderText, and include the generation of the Rect as well?
+    SDL_Texture* texture = GenerateTextTexture(graphicsDataContext, text, cache, font, color);
+    if (!texture) return false;
+
+    const float innerWidth = (width - margin * 2) * graphicsDataContext->gridSquareSize;
+    const float innerHeight = (height - margin * 2) * graphicsDataContext->gridSquareSize;
+    const float innerX = (x + margin) * graphicsDataContext->gridSquareSize;
+    const float innerY = (y + margin) * graphicsDataContext->gridSquareSize;
+
+    // Aspect ratio
+    const float widthRatio = innerWidth / (float)texture->w;
+    const float heightRatio = innerHeight / (float)texture->h;
+    const float ratio = (widthRatio <= heightRatio) ? widthRatio : heightRatio;
+
+    const float scaledWidth = (float)texture->w * ratio;
+    const float scaledHeight = (float)texture->h * ratio;
+
+    // Center inside inner-rect
+    const float centeredX = innerX + (innerWidth - scaledWidth) / 2;
+    const float centeredY = innerY + (innerHeight - scaledHeight) / 2;
+
+    const SDL_FRect rect = {
+        centeredX,
+        centeredY,
+        scaledWidth,
+        scaledHeight,
+    };
+
+    if (!SDL_RenderTexture(graphicsDataContext->renderer, texture, NULL, &rect)) return false;
+    return true;
+}
+
+SDL_FRect GenerateRect(const GraphicsDataContext* graphicsDataContext, const float x, const float y, const float width, const float height)
+{
+    const SDL_FRect rect = {
+    x * graphicsDataContext->gridSquareSize,
+    y * graphicsDataContext->gridSquareSize,
+    width * graphicsDataContext->gridSquareSize,
+    height * graphicsDataContext->gridSquareSize
+    };
+
+    return rect;
+}
+
 SDL_Texture* GenerateTextTexture(const GraphicsDataContext* graphicsDataContext, const char* text, TextCache* cache, TTF_Font* font, const SDL_Color color)
 {
     if (cache->valid && !strcmp(text, cache->text))
@@ -257,7 +275,7 @@ SDL_Texture* GenerateTextTexture(const GraphicsDataContext* graphicsDataContext,
 
     // Cache miss
     SDL_DestroyTexture(cache->texture);
-    SDL_Surface* surface = TTF_RenderText_Solid(font, text, 0, color);
+    SDL_Surface* surface = TTF_RenderText_Blended(font, text, 0, color);
     SDL_Texture* texture = SDL_CreateTextureFromSurface(graphicsDataContext->renderer, surface);
     SDL_DestroySurface(surface);
 
