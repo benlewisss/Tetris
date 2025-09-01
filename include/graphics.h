@@ -59,12 +59,28 @@ typedef struct Textures
     SDL_Texture* titleTexture;
 } Textures;
 
+/**
+ * @brief A struct containing cache data for some text
+ *
+ * @details Useful when we are rendering constantly updating text, to avoid regenerating textures
+ */
 typedef struct TextCache
 {
+    /** @brief The text to cache. */
     char text[MAX_STRING_LENGTH];
+
+    /** @brief A texture generated from the text in the cache. */
     SDL_Texture* texture;
+
+    /** @brief Whether this cache object is valid, i.e. has a valid texture associated with some text */
     bool valid;
+
 } TextCache;
+
+typedef struct Button
+{
+    SDL_Rect bounds;
+} Button;
 
 /**
  * @brief Initialises the graphicsData values.

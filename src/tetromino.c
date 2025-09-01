@@ -231,6 +231,11 @@ TetrominoShape* GetTetrominoShapeByIdentifier(const TetrominoIdentifier identifi
         }
     };
 
+    if (identifier <= 0 || (int)identifier > TETROMINO_COUNT)
+    {
+        return NULL;
+    }
+
     // Note: The order of this array must match the TetrominoIdentifier enum
     TetrominoShape* tetrominoes[TETROMINO_COUNT] = {&pieceI, &pieceO, &pieceT, &pieceZ, &pieceS, &pieceL, &pieceJ};
     return tetrominoes[identifier - 1]; // Identifiers are 1-indexed, array is 0-indexed

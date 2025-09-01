@@ -5,7 +5,9 @@
 
 bool InitGameData(GameDataContext* gameDataContext)
 {
-    // TODO Use Calloc
+    // Init array
+    memset(gameDataContext->arena, 0, sizeof(gameDataContext->arena[0][0]) * ARENA_HEIGHT * ARENA_WIDTH);
+
     // Initialise the first dropping tetromino AFTER textures are loaded
     DroppingTetromino* droppingTetromino = SDL_calloc(1, sizeof(DroppingTetromino));
     if (!droppingTetromino) return false;
@@ -32,8 +34,6 @@ bool InitGameData(GameDataContext* gameDataContext)
 
 void GameIteration(GameDataContext* gameDataContext)
 {
-    // TODO Remove all uses of static variables in this program and replace with calloc!
-
     // The time (in milliseconds) to drop a tetromino one cell (i.e. speed) for each of the tetris levels
     static Uint64 gravityValues[MAX_LEVEL] = {1000, 793, 618, 473, 355, 262, 190, 135, 94, 64, 43, 28, 18, 11, 7, 5, 4, 3, 2, 1};
 
@@ -122,7 +122,7 @@ void ResetDroppingTetromino(GameDataContext* gameDataContext)
         }
     }
 
-    gameDataContext->droppingTetromino->shape = GetRandomTetrominoShape();
+    gameDataContext->droppingTetromino->shape = GetTetrominoShapeByIdentifier(I);//GetRandomTetrominoShape();
     // TODO Find a better way to do this: The I-Piece is the only piece who's initial starting location is offset
     // downwards by one, so we do this in order to spawn the piece flush with the ceiling.
     if (gameDataContext->droppingTetromino->shape->identifier == I)
@@ -142,8 +142,16 @@ void ResetDroppingTetromino(GameDataContext* gameDataContext)
 static void DropRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], const int dropToRow, const int dropAmount)
 {
     // Start scanning for filled rows upwards from dropToRow
-    for (int row = dropToRow; row > 0; row--)
+    for (int row = dropToRow; row >= 0; row--)
     {
+        // Any rows at the top of the arena must be set to zero rather than filled with blocks above
+        // them (as there are none).
+        if (row - dropAmount < 0)
+        {
+            memset(arena[row], 0, ARENA_WIDTH * sizeof(arena[0][0]));
+            continue;
+        }
+
         int squareCount = 0;
         for (int col = 0; col < ARENA_WIDTH; col++)
         {
@@ -206,12 +214,11 @@ int ClearLines(GameDataContext* gameDataContext)
         }
     }
 
+    if (bottomPointer == 0) return 0;
+
     // Clear the cleared rows and drop the rows above
-    for (int row = bottomPointer; row <= topPointer; row--)
-    {
-        memset(gameDataContext->arena[row], 0, ARENA_WIDTH);
-    }
-    DropRows(gameDataContext->arena, bottomPointer, bottomPointer - topPointer);
+    SDL_Log("Dropping Rows - Drop to: %d, Drop by: %d", bottomPointer, numFilledRows);
+    DropRows(gameDataContext->arena, bottomPointer, numFilledRows);
 
     // Scoring for different levels
     switch (numFilledRows)

@@ -83,7 +83,10 @@ bool DrawArena(GraphicsDataContext* graphicsDataContext, const GameDataContext* 
             // Draw filled blocks
             if (gameDataContext->arena[row][col])
             {
-                SDL_Texture* blockTexture = GetTetrominoShapeByIdentifier(gameDataContext->arena[row][col])->texture;
+                const TetrominoShape* shape = GetTetrominoShapeByIdentifier(gameDataContext->arena[row][col]);
+                SDL_Texture* blockTexture = shape->texture;
+                if (!blockTexture) return false;
+
                 DrawBlock(graphicsDataContext, blockTexture, 255, col, row);
             }
 
@@ -94,7 +97,6 @@ bool DrawArena(GraphicsDataContext* graphicsDataContext, const GameDataContext* 
                 return false;
         }
     }
-
     return true;
 }
 
