@@ -20,6 +20,7 @@ add_executable(Tetris
     src/game.c
     src/graphics.c
     src/tetromino.c
+    src/util.c
     include/game.h
     include/graphics.h
     include/tetromino.h

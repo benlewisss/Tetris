@@ -3,37 +3,52 @@
 #include "util.h"
 #include "tetromino.h"
 
-bool InitGameData(GameDataContext* gameDataContext)
+
+bool GAME_Init(GameDataContext* gameDataContext)
 {
-    // Init array
-    memset(gameDataContext->arena, 0, sizeof(gameDataContext->arena[0][0]) * ARENA_HEIGHT * ARENA_WIDTH);
+    gameDataContext->droppingTetromino = NULL;
+    return GAME_Reset(gameDataContext);
+}
 
-    // Initialise the first dropping tetromino AFTER textures are loaded
-    DroppingTetromino* droppingTetromino = SDL_calloc(1, sizeof(DroppingTetromino));
-    if (!droppingTetromino) return false;
+void GAME_Restart(void* data)
+{
+    GameDataContext* gameDataContext = (GameDataContext*)data;
+    GAME_Reset(gameDataContext);
+}
 
-    droppingTetromino->shape = GetRandomTetrominoShape();
-    if (droppingTetromino->shape->identifier == I)
-    {
-        droppingTetromino->y = -1;
-    }
-    else
-    {
-        droppingTetromino->y = 0;
-    }
-
-    droppingTetromino->x = ((ARENA_WIDTH - TETROMINO_MAX_SIZE / 2) - 1) / 2;
-    droppingTetromino->orientation = NORTH;
-    droppingTetromino->terminationTick = 0;
+bool GAME_Reset(GameDataContext* gameDataContext)
+{
+    memset(gameDataContext->arena, 0,
+        sizeof(gameDataContext->arena[0][0]) * ARENA_HEIGHT * ARENA_WIDTH);
 
     gameDataContext->score = 0;
     gameDataContext->level = 1;
-    gameDataContext->droppingTetromino = droppingTetromino;
+
+    if (gameDataContext->droppingTetromino == NULL) {
+        gameDataContext->droppingTetromino = SDL_calloc(1, sizeof(DroppingTetromino));
+        if (!gameDataContext->droppingTetromino) return false;
+    }
+
+    gameDataContext->droppingTetromino->shape = GetRandomTetrominoShape();
+    gameDataContext->droppingTetromino->y =
+        (gameDataContext->droppingTetromino->shape->identifier == I) ? -1 : 0;
+    gameDataContext->droppingTetromino->x = ((ARENA_WIDTH - TETROMINO_MAX_SIZE / 2) - 1) / 2;
+    gameDataContext->droppingTetromino->orientation = NORTH;
+    gameDataContext->droppingTetromino->terminationTick = 0;
+
     return true;
+}
+
+void GAME_TogglePause(void* data)
+{
+    GameDataContext* gameDataContext = (GameDataContext*)data;
+    gameDataContext->isPaused = !gameDataContext->isPaused;
 }
 
 void GameIteration(GameDataContext* gameDataContext)
 {
+    if (gameDataContext->isPaused) return;
+
     // The time (in milliseconds) to drop a tetromino one cell (i.e. speed) for each of the tetris levels
     static Uint64 gravityValues[MAX_LEVEL] = {1000, 793, 618, 473, 355, 262, 190, 135, 94, 64, 43, 28, 18, 11, 7, 5, 4, 3, 2, 1};
 
@@ -244,6 +259,8 @@ int ClearLines(GameDataContext* gameDataContext)
 
 bool WallKickDroppingTetromino(GameDataContext* gameDataContext, const int rotationDirection)
 {
+    if (gameDataContext->isPaused) return true;
+
     // 2D array of coordinate pairs (3D) representing the Wall Kick Data (see https://tetris.wiki/Super_Rotation_System).
     // The first dimension is the orientation direction, the second dimension are one of the 5 tests, and the third
     // dimension are the test coordinate pairs.
@@ -320,6 +337,7 @@ bool WallKickDroppingTetromino(GameDataContext* gameDataContext, const int rotat
 
 void HardDropTetromino(GameDataContext* gameDataContext)
 {
+    if (gameDataContext->isPaused) return;
     while (!WillDroppingTetrominoCollide(gameDataContext, 0, 1, 0))
     {
         gameDataContext->score += 2;
@@ -331,6 +349,7 @@ void HardDropTetromino(GameDataContext* gameDataContext)
 
 void SoftDropTetromino(GameDataContext* gameDataContext)
 {
+    if (gameDataContext->isPaused) return;
     if (WillDroppingTetrominoCollide(gameDataContext, 0, 1, 0))
     {
         if (gameDataContext->droppingTetromino->terminationTick == 0) gameDataContext->droppingTetromino->terminationTick = SDL_GetTicks();
@@ -344,5 +363,6 @@ void SoftDropTetromino(GameDataContext* gameDataContext)
 
 void ShiftTetromino(GameDataContext* gameDataContext, const int translation)
 {
+    if (gameDataContext->isPaused) return;
     if (!WillDroppingTetrominoCollide(gameDataContext, translation, 0, 0)) gameDataContext->droppingTetromino->x += translation;
 }

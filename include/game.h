@@ -47,13 +47,38 @@ typedef struct GameDataContext
 /**
  * @brief Initialises the gameDataContext values.
  *
- * @note Must be called after textures are loaded with LoadResources()!
+ * @param gameDataContext A struct containing the game data to initialise.
+ *
+ * @return True on success, false otherwise.
+ */
+bool GAME_Init(GameDataContext* gameDataContext);
+
+/**
+ * @brief Reset the current game state.
  *
  * @param gameDataContext A struct containing the game data to initialise.
  *
  * @return True on success, false otherwise.
  */
-bool InitGameData(GameDataContext* gameDataContext);
+bool GAME_Reset(GameDataContext* gameDataContext);
+
+/**
+ * @brief Restart the game.
+ *
+ * @param data A struct containing the game data to initialise.
+ *
+ * @return True on success, false otherwise.
+ */
+void GAME_Restart(void* data);
+
+/**
+ * @brief Pause/resume the game.
+ *
+ * @param data A struct containing the game data to initialise.
+ *
+ * @return True on success, false otherwise.
+ */
+void GAME_TogglePause(void* data);
 
 /**
  * @brief The method handling all the game logic that should happen each frame.

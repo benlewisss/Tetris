@@ -22,27 +22,6 @@ enum GraphicsConfig
 };
 
 /**
- *  @brief A struct that holds the current graphics state: renderer, window and gridSquareSize.
- *
- *  @details It is designed for runtime state tracking.
- */
-typedef struct GraphicsDataContext
-{
-    /** @brief A pointer to the SDL renderer used for GPU calls. */
-    SDL_Renderer* renderer;
-
-    /** @brief A pointer to the SDL window object. */
-    SDL_Window* window;
-
-    /**
-     * @brief The current size (in pixels) of a single unit grid square.
-     * @details We devise pixel-coordinates for all draw calls using this value, as it changes relative to the window size.
-     */
-    float gridSquareSize;
-
-} GraphicsDataContext;
-
-/**
  * @brief A struct containing fonts.
  */
 typedef struct Fonts
@@ -52,12 +31,15 @@ typedef struct Fonts
 } Fonts;
 
 /**
- * @brief A struct containing textures.
+ * @brief A rectangle, on the grid, with the origin at the upper left (using floating point values).
  */
-typedef struct Textures
+typedef struct FGridRect
 {
-    SDL_Texture* titleTexture;
-} Textures;
+    float x;
+    float y;
+    float w;
+    float h;
+} FGridRect;
 
 /**
  * @brief A struct containing cache data for some text
@@ -77,30 +59,89 @@ typedef struct TextCache
 
 } TextCache;
 
+/**
+ * @brief The function to callback when a button is clicked.
+ */
+typedef void (*ButtonCallback)(void* userData);
+
+/**
+ * @brief A struct containing 
+ */
 typedef struct Button
 {
-    SDL_Rect bounds;
+    FGridRect gridRect;
+    SDL_Color color;
+    SDL_Color hoverColor;
+    SDL_Color textColor;
+    TTF_Font* font;
+    char text[MAX_STRING_LENGTH];
+    TextCache cache;
+
+    bool isHovered;
+    bool isPressed;
+
+    ButtonCallback onClick;
+    void* userData;
+
 } Button;
+
+/**
+ * @brief A struct containing data pertaining to objects in the sidebar UI
+ */
+typedef struct SidebarUI
+{
+    /** @brief The width of the SidebarUI in grid alignment squares */
+    int width;
+    Button restartButton;
+    Button pauseButton;
+    Button quitButton;
+} SidebarUI;
+
+/**
+ *  @brief A struct that holds the current graphics state: renderer, window and gridSquareSize.
+ *
+ *  @details It is designed for runtime state tracking.
+ */
+typedef struct GraphicsDataContext
+{
+    /** @brief A pointer to the SDL renderer used for GPU calls. */
+    SDL_Renderer* renderer;
+
+    /** @brief A pointer to the SDL window object. */
+    SDL_Window* window;
+
+    /**
+     * @brief The current size (in pixels) of a single unit grid square.
+     * @details We devise pixel-coordinates for all draw calls using this value, as it changes relative to the window size.
+     */
+    float gridSquareSize;
+
+    /** @brief A pointer to a sidebar UI struct. */
+    SidebarUI* sidebarUI;
+
+} GraphicsDataContext;
+
+
 
 /**
  * @brief Initialises the graphicsData values.
  *
  * @param graphicsDataContext A struct containing the graphics data to initialise.
+ * @param fonts A pointer to the fonts struct to load the fonts to.
+ * @param gameDataContext A struct containing the game data context.
  *
  * @return True on success, false otherwise.
  */
-bool InitGraphicsData(GraphicsDataContext* graphicsDataContext);
+bool GFX_Init(GraphicsDataContext* graphicsDataContext, Fonts* fonts, GameDataContext* gameDataContext);
 
 /**
- * @brief Loads resources into memory, including tetromino square textures, fonts, and const text.
+ * @brief Loads resources into memory, including tetromino square textures
  * 
  * @param graphicsDataContext A struct containing the graphics data context.
- * @param fonts A pointer to the fonts struct to load the fonts to.
- * @param textures A pointer to the textures struct to load the textures to.
  *
  * @return True on success, false otherwise.
  */
-bool LoadResources(GraphicsDataContext* graphicsDataContext, Fonts* fonts, Textures* textures);
+bool GFX_LoadTetrominoTextures(GraphicsDataContext* graphicsDataContext);
 
 /**
  * @brief Draw a single block on the grid.
@@ -154,22 +195,22 @@ bool DrawDroppingTetrominoGhost(GraphicsDataContext* graphicsDataContext, GameDa
  *
  * @param graphicsDataContext A struct containing the graphics data context.
  * @param fonts A pointer to a struct of fonts to use.
- * @param textures A pointer to the struct of textures to use.
  * @param gameDataContext A struct containing the game data context.
  *
  * @return True on success, false otherwise.
  */
-bool DrawSidebar(GraphicsDataContext* graphicsDataContext, Fonts* fonts, Textures* textures, GameDataContext* gameDataContext);
+bool DrawSidebar(GraphicsDataContext* graphicsDataContext, Fonts* fonts, GameDataContext* gameDataContext);
 
-/** TODO Fill out
+/**
+ * @brief Render a game over screen.
  * 
- * @param graphicsDataContext 
- * @param fonts 
- * @param textures 
- * @param gameDataContext 
- * @return 
+ * @param graphicsDataContext A struct containing the graphics data context.
+ * @param fonts A pointer to a struct of fonts to use.
+ * @param gameDataContext A struct containing the game data context.
+ *
+ * @return True on success, false otherwise.
  */
-bool DrawGameOverScreen(GraphicsDataContext* graphicsDataContext, Fonts* fonts, Textures* textures, GameDataContext* gameDataContext);
+bool DrawGameOverScreen(GraphicsDataContext* graphicsDataContext, Fonts* fonts, GameDataContext* gameDataContext);
 
 /**
  * @brief Resizes the grid square (used as a standard alignment unit) based on what would fit in the given window size.
@@ -186,10 +227,7 @@ bool ResizeGridSquares(GraphicsDataContext* graphicsDataContext, Sint32 windowWi
  * @brief Render text centered within given bounds (specified in grid squares).
  * 
  * @param graphicsDataContext A struct containing the graphics data context.
- * @param x The x-coordinate on the grid system of the rect.
- * @param y The y-coordinate on the grid system of the rect.
- * @param width The width of the rect, in grid squares.
- * @param height The height of the rect, in grid squares.
+ * @param gridRect A rectangle representing the bounds of the text on the alignment grid
  * @param margin The margin of the generated text.
  * @param text The text to generate.
  * @param cache A persistent cache object.
@@ -198,7 +236,28 @@ bool ResizeGridSquares(GraphicsDataContext* graphicsDataContext, Sint32 windowWi
  *
  * @return True if success, false otherwise.
  */
-bool RenderText(GraphicsDataContext* graphicsDataContext, float x, float y, float width, float height, float margin, char* text, TextCache* cache, TTF_Font* font, SDL_Color color);
+bool RenderText(GraphicsDataContext* graphicsDataContext, FGridRect gridRect, float margin, char* text, TextCache* cache, TTF_Font* font, SDL_Color color);
+
+/**
+ * @brief Render a button object onto the screen.
+ *
+ * @param graphicsDataContext A struct containing the graphics data context.
+ * @param button A pointer to the button to render.
+ * @return True if success, false otherwise.
+ */
+bool RenderButton(GraphicsDataContext* graphicsDataContext, Button* button);
+
+/**
+ * @brief Handle events pertaining to a given button object.
+ *
+ * @details This method will update the button states given the correct event has taken place, such as hovering or
+ * pressing.
+ *
+ * @param graphicsDataContext A struct containing the graphics data context.
+ * @param event The event to be handled.
+ * @param button A pointer to the button to handle events for.
+ */
+void HandleButtonEvent(GraphicsDataContext* graphicsDataContext, SDL_Event* event, Button* button);
 
 /**
  * @brief Generate an SDL_FRect object based on a grid system that abstracts alignment and resizing.
@@ -206,16 +265,14 @@ bool RenderText(GraphicsDataContext* graphicsDataContext, float x, float y, floa
  * @note This method can take a fraction of a grid square as a location on the grid.
  *
  * @param graphicsDataContext A struct containing the graphics data context.
- * @param x The x-coordinate on the grid system of the rect.
- * @param y The y-coordinate on the grid system of the rect.
- * @param width The width of the rect, in grid squares.
- * @param height The height of the rect, in grid squares.
+ * @param gridRect A rectangle representing the bounds of the text on the alignment grid
  *
- * @return A pointer to an SDL_FRect object
+ * @return An SDL_FRect object
  */
-SDL_FRect GenerateRect(GraphicsDataContext* graphicsDataContext, float x, float y, float width, float height);
+SDL_FRect FGridRectToFRect(GraphicsDataContext* graphicsDataContext, FGridRect gridRect);
 
 /**
+ * @public
  * @brief A wrapper method to generate a texture for text. Utilises a caching system to avoid regenerating existing textures.
  *
  * @note This method will NOT generate a new texture if anything other than the text has changed, i.e. A new color
