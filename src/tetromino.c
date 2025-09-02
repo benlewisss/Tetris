@@ -241,33 +241,35 @@ TetrominoShape* GetTetrominoShapeByIdentifier(const TetrominoIdentifier identifi
     return tetrominoes[identifier - 1]; // Identifiers are 1-indexed, array is 0-indexed
 }
 
-const TetrominoShape* GetRandomTetrominoShape(void)
+void InitTetrominoBag(TetrominoBag* bag)
 {
-    static int dropCount = 0;
-    // NOTE: Any additionally added tetrominoes should be added here
-    static TetrominoIdentifier tetrominoBag[TETROMINO_COUNT] = {I, O, T, Z, S, L, J}; 
+    bag->dropCount = 0;
+    for (int i = 0; i < TETROMINO_COUNT; i++) {
+        bag->bag[i] = (TetrominoIdentifier)(i + 1);
+    }
+    Shuffle(bag->bag, TETROMINO_COUNT);
+}
 
-    if (dropCount >= TETROMINO_COUNT)
-    {
-        dropCount = 0;
-        Shuffle(tetrominoBag, TETROMINO_COUNT);
+const TetrominoShape* NextTetrominoFromBag(TetrominoBag* bag)
+{
+    if (bag->dropCount >= TETROMINO_COUNT) {
+        InitTetrominoBag(bag); // reshuffle
     }
 
-    // Make return value readonly
-    const TetrominoShape* tetromino = GetTetrominoShapeByIdentifier(tetrominoBag[dropCount]);
-    dropCount++;
+    const TetrominoShape* tetromino = GetTetrominoShapeByIdentifier(bag->bag[bag->dropCount]);
+
+    bag->dropCount++;
     return tetromino;
 }
 
 void RotateDroppingTetromino(DroppingTetromino* droppingTetromino, const int rotationAmount)
 {
-    // TODO Is the following the most efficient way to do this? (No, maybe just use If statements to handle the negatives)
-    const enum Orientation newDirection = (((droppingTetromino->orientation + rotationAmount) % 4) + 4) % 4;
-    droppingTetromino->orientation = newDirection;
+    // NOTE: & 3 Does the same as wrapping 0-3, but makes for cleaner code as rotationAmount can be negative
+    // and in C, you can't easily use modulus to wrap negatives. This trick only works when % is a power of two.
+    droppingTetromino->orientation = (droppingTetromino->orientation + rotationAmount) & 3;
 }
 
-
-static void Shuffle(int* array, const size_t n)
+void Shuffle(int* array, const size_t n)
 {
     // Fisher-Yates Shuffle
     if (n > 1)

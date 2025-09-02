@@ -127,12 +127,12 @@ typedef struct GraphicsDataContext
  * @brief Initialises the graphicsData values.
  *
  * @param graphicsDataContext A struct containing the graphics data to initialise.
- * @param fonts A pointer to the fonts struct to load the fonts to.
  * @param gameDataContext A struct containing the game data context.
+ * @param fonts A pointer to the fonts struct to load the fonts to.
  *
  * @return True on success, false otherwise.
  */
-bool GFX_Init(GraphicsDataContext* graphicsDataContext, Fonts* fonts, GameDataContext* gameDataContext);
+bool GFX_Init(GraphicsDataContext* graphicsDataContext, GameDataContext* gameDataContext, Fonts* fonts);
 
 /**
  * @brief Loads resources into memory, including tetromino square textures
@@ -142,6 +142,17 @@ bool GFX_Init(GraphicsDataContext* graphicsDataContext, Fonts* fonts, GameDataCo
  * @return True on success, false otherwise.
  */
 bool GFX_LoadTetrominoTextures(GraphicsDataContext* graphicsDataContext);
+
+/**
+ * @brief A wrapper function to render all graphics objects onto the window.
+ * 
+ * @param graphicsDataContext A struct containing the graphics data to initialise.
+ * @param fonts A pointer to the fonts struct to load the fonts to.
+ * @param gameDataContext A struct containing the game data context.
+ *
+ * @return True on success, false otherwise.
+ */
+bool GFX_RenderGame(GraphicsDataContext* graphicsDataContext, GameDataContext* gameDataContext, Fonts* fonts);
 
 /**
  * @brief Draw a single block on the grid.
@@ -194,23 +205,23 @@ bool DrawDroppingTetrominoGhost(GraphicsDataContext* graphicsDataContext, GameDa
  * @brief Draw the sidebar next to the arena.
  *
  * @param graphicsDataContext A struct containing the graphics data context.
- * @param fonts A pointer to a struct of fonts to use.
  * @param gameDataContext A struct containing the game data context.
+ * @param fonts A pointer to a struct of fonts to use.
  *
  * @return True on success, false otherwise.
  */
-bool DrawSidebar(GraphicsDataContext* graphicsDataContext, Fonts* fonts, GameDataContext* gameDataContext);
+bool DrawSidebar(GraphicsDataContext* graphicsDataContext, GameDataContext* gameDataContext, Fonts* fonts);
 
 /**
  * @brief Render a game over screen.
  * 
  * @param graphicsDataContext A struct containing the graphics data context.
- * @param fonts A pointer to a struct of fonts to use.
  * @param gameDataContext A struct containing the game data context.
+ * @param fonts A pointer to a struct of fonts to use.
  *
  * @return True on success, false otherwise.
  */
-bool DrawGameOverScreen(GraphicsDataContext* graphicsDataContext, Fonts* fonts, GameDataContext* gameDataContext);
+bool DrawGameOverScreen(GraphicsDataContext* graphicsDataContext, GameDataContext* gameDataContext, Fonts* fonts);
 
 /**
  * @brief Resizes the grid square (used as a standard alignment unit) based on what would fit in the given window size.
@@ -265,11 +276,12 @@ void HandleButtonEvent(GraphicsDataContext* graphicsDataContext, SDL_Event* even
  * @note This method can take a fraction of a grid square as a location on the grid.
  *
  * @param graphicsDataContext A struct containing the graphics data context.
- * @param gridRect A rectangle representing the bounds of the text on the alignment grid
+ * @param gridRect A rectangle representing the bounds of the text on the alignment grid.
+ * @param margin A margin to include within the newly generated FRect within the grid aligned rect.
  *
  * @return An SDL_FRect object
  */
-SDL_FRect FGridRectToFRect(GraphicsDataContext* graphicsDataContext, FGridRect gridRect);
+SDL_FRect FGridRectToFRect(GraphicsDataContext* graphicsDataContext, FGridRect gridRect, float margin);
 
 /**
  * @public

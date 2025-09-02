@@ -28,7 +28,6 @@ typedef struct
     GameDataContext* gameDataContext;
     GraphicsDataContext* graphicsDataContext;
     Fonts* fonts;
-    bool isRunning;
 } AppState;
 
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
@@ -53,7 +52,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
     if (!state) return SDL_APP_FAILURE;
 
     Assert(GAME_Init(gameDataContext), "Failed to initialise game data!\n");
-    Assert(GFX_Init(graphicsDataContext, fonts, gameDataContext), "Failed to initialise graphics data!\n");
+    Assert(GFX_Init(graphicsDataContext, gameDataContext, fonts), "Failed to initialise graphics data!\n");
     Assert(GFX_LoadTetrominoTextures(graphicsDataContext), "Failed to load resources!\n");
     
 
@@ -61,7 +60,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
     state->gameDataContext = gameDataContext;
     state->fonts = fonts;
 
-    state->isRunning = true;
+    state->gameDataContext->isRunning = true;
     *appstate = state;
 
     return SDL_APP_CONTINUE;
@@ -77,12 +76,11 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
     switch (event->type)
     {
     case SDL_EVENT_QUIT:
-        state->isRunning = false;
+        state->gameDataContext->isRunning = false;
         break;
 
     case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
-        SDL_Log("Window close requested");
-        state->isRunning = false;
+        state->gameDataContext->isRunning = false;
         break;
 
     case SDL_EVENT_WINDOW_RESIZED:
@@ -120,20 +118,18 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
         case SDLK_SPACE:
             HardDropTetromino(state->gameDataContext);
             break;
+        case SDLK_P:
+            GAME_TogglePause(state->gameDataContext);
+            break;
         default:
             break;
         }
 
         if (event->key.key == SDLK_ESCAPE)
         {
-            SDL_Log("ESC pressed, exiting!");
-            state->isRunning = false;
+            state->gameDataContext->isRunning = false;
         }
 
-        else
-        {
-            SDL_Log("Key: %s", SDL_GetKeyName(event->key.key));
-        }
         break;
 
     default:
@@ -147,21 +143,12 @@ SDL_AppResult SDL_AppIterate(void* appstate)
 {
     const AppState* state = (AppState*)appstate;
 
-    // Clear screen
-    SDL_SetRenderDrawColor(state->graphicsDataContext->renderer, 17, 17, 17, 255);
-    SDL_RenderClear(state->graphicsDataContext->renderer);
-
-    // TODO Move all of these graphics and rendering calls into one method in graphics.c
-    Assert(DrawDroppingTetromino(state->graphicsDataContext, state->gameDataContext), "Failed to draw dropping tetromino!\n");
-    Assert(DrawDroppingTetrominoGhost(state->graphicsDataContext, state->gameDataContext), "Failed to draw dropping tetromino ghost!\n");
-    Assert(DrawArena(state->graphicsDataContext, state->gameDataContext), "Failed to draw arena!\n");
-    Assert(DrawSidebar(state->graphicsDataContext, state->fonts, state->gameDataContext), "Failed to draw sidebar!\n");
-    //DrawGameOverScreen(state->graphicsDataContext, state->fonts, state->gameDataContext);
+    Assert(GFX_RenderGame(state->graphicsDataContext, state->gameDataContext, state->fonts), "Failed to render game!\n");
     Assert(SDL_RenderPresent(state->graphicsDataContext->renderer), "Failed to render previous draws!\n");
     GameIteration(state->gameDataContext);
     
 
-    return state->isRunning ? SDL_APP_CONTINUE : SDL_APP_SUCCESS; // return SDL_APP_SUCCESS to quit
+    return state->gameDataContext->isRunning ? SDL_APP_CONTINUE : SDL_APP_SUCCESS;
 }
 
 void SDL_AppQuit(void* appstate, SDL_AppResult result)

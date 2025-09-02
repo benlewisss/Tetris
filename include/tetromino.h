@@ -85,6 +85,31 @@ typedef struct DroppingTetromino
 } DroppingTetromino;
 
 /**
+ * @brief The 'bag' containing the set of possible tetrominoes.
+ */
+typedef struct TetrominoBag
+{
+    int dropCount;
+    TetrominoIdentifier bag[TETROMINO_COUNT];
+} TetrominoBag;
+
+/**
+ * @brief Initialise and shuffle a tetromino bag.
+ *
+ * @note The "random" selection is done using the tetris guidelines Random Generator, wherein a "bag" of the possible
+ * tetrominoes is generated and dished out one by one until the bag is empty, at which point it is reshuffled.
+ */
+void InitTetrominoBag(TetrominoBag* bag);
+
+/**
+ * @brief Draw the next tetromino shape from the bag.
+ *
+ * @param bag A pointer to the TetrominoBag state.
+ * @return A readonly TetrominoShape.
+ */
+const TetrominoShape* NextTetrominoFromBag(TetrominoBag* bag);
+
+/**
  * @brief Return a pointer to a tetromino shape object using its identifier.
  *
  * @note This should be treated as a READONLY object, the only reason it is not is so we can initialise
@@ -94,16 +119,6 @@ typedef struct DroppingTetromino
  * @return A tetromino shape object.
  */
 TetrominoShape* GetTetrominoShapeByIdentifier(TetrominoIdentifier identifier);
-
-/**
- * @brief Return a pointer to a random readonly tetromino shape object.
- *
- * @note The "random" selection is done using the tetris guidelines Random Generator, wherein a "bag" of the possible
- * tetrominoes is generated and dished out one by one until the bag is empty, at which point it is reshuffled.
- *
- * @returns A tetromino shape object.
- */
-const TetrominoShape* GetRandomTetrominoShape(void);
 
 /**
  * @brief Rotate a given dropping tetromino either left or right.
