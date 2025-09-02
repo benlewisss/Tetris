@@ -21,7 +21,7 @@ bool GFX_Init(GraphicsDataContext* graphicsDataContext, Fonts* fonts, GameDataCo
     // TODO Store all other sidebar data here, i.e. the size of the bar and its location etc.
 
     sidebar->restartButton = (Button){
-        .gridRect = {(float)ARENA_WIDTH + 0.5f, 7, 2, 1},
+        .gridRect = {(float)ARENA_WIDTH, 7, 3, 1},
         .color = {40, 40, 40, 255},
         .hoverColor = {80, 80, 80, 255},
         .textColor = {255, 255, 255, 255},
@@ -33,7 +33,7 @@ bool GFX_Init(GraphicsDataContext* graphicsDataContext, Fonts* fonts, GameDataCo
     };
 
     sidebar->pauseButton = (Button){
-        .gridRect = {(float)ARENA_WIDTH + 0.5f, 9, 2, 1},
+        .gridRect = {(float)ARENA_WIDTH, 9, 3, 1},
         .color = {40, 40, 40, 255},
         .hoverColor = {80, 80, 80, 255},
         .textColor = {255, 255, 255, 255},
@@ -44,17 +44,17 @@ bool GFX_Init(GraphicsDataContext* graphicsDataContext, Fonts* fonts, GameDataCo
         .userData = gameDataContext,
     };
 
-    //sidebar->quitButton = (Button){
-    //    .gridRect = {0, 5, 4, 2},
-    //    .color = {40, 40, 40, 255},
-    //    .hoverColor = {80, 80, 80, 255},
-    //    .textColor = {255, 255, 255, 255},
-    //    .font = fonts->mainFont,
-    //    .text = "QUIT",
-    //    .cache = {0},
-    //    .onClick = GAME_Restart,
-    //    .userData = NULL,
-    //};
+    sidebar->quitButton = (Button){
+        .gridRect = {(float)ARENA_WIDTH, 11, 3, 1},
+        .color = {40, 40, 40, 255},
+        .hoverColor = {80, 80, 80, 255},
+        .textColor = {255, 255, 255, 255},
+        .font = fonts->mainFont,
+        .text = "QUIT",
+        .cache = {0},
+        .onClick = GAME_Quit,
+        .userData = gameDataContext,
+    };
 
     sidebar->width = 3;
 
@@ -128,7 +128,7 @@ bool DrawBlock(GraphicsDataContext* graphicsDataContext, SDL_Texture* texture, c
     if (x >= ARENA_WIDTH || x < 0 || y >= ARENA_HEIGHT || y < 0)
         return false;
 
-    const SDL_FRect rect = FGridRectToFRect(graphicsDataContext, (FGridRect){ (float)x, (float)y, 1, 1 });
+    const SDL_FRect rect = FGridRectToFRect(graphicsDataContext, (FGridRect){ (float)x, (float)y, 1, 1 }, 0);
 
     if (!SDL_SetTextureAlphaMod(texture, alpha)) return false;
     return SDL_RenderTexture(graphicsDataContext->renderer, texture, NULL, &rect);
@@ -152,7 +152,7 @@ bool DrawArena(GraphicsDataContext* graphicsDataContext, const GameDataContext* 
 
             // Draw grid
             SDL_SetRenderDrawColor(graphicsDataContext->renderer, 32, 32, 32, 255); // Grey
-            SDL_FRect rect = FGridRectToFRect(graphicsDataContext, (FGridRect){ (float)col, (float)row, 1, 1 });
+            SDL_FRect rect = FGridRectToFRect(graphicsDataContext, (FGridRect){ (float)col, (float)row, 1, 1 }, 0);
             if (!SDL_RenderRect(graphicsDataContext->renderer, &rect))
                 return false;
         }
@@ -232,7 +232,7 @@ bool DrawSidebar(GraphicsDataContext* graphicsDataContext, const Fonts* fonts, c
     // Draw sidebar background
     SDL_SetRenderDrawColor(graphicsDataContext->renderer, 20, 20, 20, 255); // Grey
     FGridRect gridRect = { ARENA_WIDTH, 0, (float)graphicsDataContext->sidebarUI->width, WINDOW_GRID_HEIGHT };
-    const SDL_FRect backgroundRect = FGridRectToFRect(graphicsDataContext, gridRect);
+    const SDL_FRect backgroundRect = FGridRectToFRect(graphicsDataContext, gridRect, 0);
     if (!SDL_RenderRect(graphicsDataContext->renderer, &backgroundRect))
         return false;
 
@@ -267,6 +267,8 @@ bool DrawSidebar(GraphicsDataContext* graphicsDataContext, const Fonts* fonts, c
     }
     if (!RenderButton(graphicsDataContext, &graphicsDataContext->sidebarUI->pauseButton)) return false;
 
+    if (!RenderButton(graphicsDataContext, &graphicsDataContext->sidebarUI->quitButton)) return false;
+
     return true;
 }
 
@@ -276,7 +278,7 @@ bool DrawGameOverScreen(GraphicsDataContext* graphicsDataContext, const Fonts* f
 
     // Draw menu background
     SDL_SetRenderDrawColor(graphicsDataContext->renderer, 10, 10, 10, 200); // Grey
-    const SDL_FRect backgroundRect = FGridRectToFRect(graphicsDataContext, (FGridRect){ 0, 0, ARENA_WIDTH, ARENA_HEIGHT });
+    const SDL_FRect backgroundRect = FGridRectToFRect(graphicsDataContext, (FGridRect){ 0, 0, ARENA_WIDTH, ARENA_HEIGHT }, 0);
     if (!SDL_RenderFillRect(graphicsDataContext->renderer, &backgroundRect)) return false;
 
     // Draw title
@@ -333,7 +335,7 @@ bool RenderButton(GraphicsDataContext* graphicsDataContext, Button* button)
     const SDL_Color buttonColor = button->isHovered ? button->hoverColor : button->color;
 
     if (!SDL_SetRenderDrawColor(graphicsDataContext->renderer, buttonColor.r, buttonColor.g, buttonColor.b, buttonColor.a)) return false;
-    const SDL_FRect rect = FGridRectToFRect(graphicsDataContext, button->gridRect);
+    const SDL_FRect rect = FGridRectToFRect(graphicsDataContext, button->gridRect, 0.1f);
     if (!SDL_RenderFillRect(graphicsDataContext->renderer, &rect)) return false;
 
     if (!RenderText(graphicsDataContext, button->gridRect, 0.25f, button->text, &button->cache, button->font, button->textColor)) return false;
@@ -343,7 +345,7 @@ bool RenderButton(GraphicsDataContext* graphicsDataContext, Button* button)
 
 void HandleButtonEvent(GraphicsDataContext* graphicsDataContext, SDL_Event* event, Button* button)
 {
-    const SDL_FRect rect = FGridRectToFRect(graphicsDataContext, button->gridRect);
+    const SDL_FRect rect = FGridRectToFRect(graphicsDataContext, button->gridRect, 0);
 
     if (event->type == SDL_EVENT_MOUSE_MOTION)
     {
@@ -361,13 +363,15 @@ void HandleButtonEvent(GraphicsDataContext* graphicsDataContext, SDL_Event* even
     }
 }
 
-SDL_FRect FGridRectToFRect(const GraphicsDataContext* graphicsDataContext, const FGridRect gridRect)
+SDL_FRect FGridRectToFRect(const GraphicsDataContext* graphicsDataContext, const FGridRect gridRect, const float margin)
 {
+    // TODO Check that margin*2 < width/height
+
     const SDL_FRect rect = {
-    gridRect.x * graphicsDataContext->gridSquareSize,
-    gridRect.y * graphicsDataContext->gridSquareSize,
-    gridRect.w * graphicsDataContext->gridSquareSize,
-    gridRect.h * graphicsDataContext->gridSquareSize
+    (gridRect.x + margin) * graphicsDataContext->gridSquareSize,
+    (gridRect.y + margin) * graphicsDataContext->gridSquareSize,
+    (gridRect.w - margin * 2) * graphicsDataContext->gridSquareSize,
+    (gridRect.h - margin * 2) * graphicsDataContext->gridSquareSize
     };
 
     return rect;

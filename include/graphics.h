@@ -272,11 +272,12 @@ void HandleButtonEvent(GraphicsDataContext* graphicsDataContext, SDL_Event* even
  * @note This method can take a fraction of a grid square as a location on the grid.
  *
  * @param graphicsDataContext A struct containing the graphics data context.
- * @param gridRect A rectangle representing the bounds of the text on the alignment grid
+ * @param gridRect A rectangle representing the bounds of the text on the alignment grid.
+ * @param margin A margin to include within the newly generated FRect within the grid aligned rect.
  *
  * @return An SDL_FRect object
  */
-SDL_FRect FGridRectToFRect(GraphicsDataContext* graphicsDataContext, FGridRect gridRect);
+SDL_FRect FGridRectToFRect(GraphicsDataContext* graphicsDataContext, FGridRect gridRect, float margin);
 
 /**
  * @public
