@@ -33,7 +33,7 @@ bool GFX_Init(GraphicsDataContext* graphicsDataContext, Fonts* fonts, GameDataCo
     };
 
     sidebar->pauseButton = (Button){
-        .gridRect = {(float)ARENA_WIDTH, 9, 3, 1},
+        .gridRect = {(float)ARENA_WIDTH, 8, 3, 1},
         .color = {40, 40, 40, 255},
         .hoverColor = {80, 80, 80, 255},
         .textColor = {255, 255, 255, 255},
@@ -45,7 +45,7 @@ bool GFX_Init(GraphicsDataContext* graphicsDataContext, Fonts* fonts, GameDataCo
     };
 
     sidebar->quitButton = (Button){
-        .gridRect = {(float)ARENA_WIDTH, 11, 3, 1},
+        .gridRect = {(float)ARENA_WIDTH, 9, 3, 1},
         .color = {40, 40, 40, 255},
         .hoverColor = {80, 80, 80, 255},
         .textColor = {255, 255, 255, 255},
@@ -237,7 +237,7 @@ bool DrawSidebar(GraphicsDataContext* graphicsDataContext, const Fonts* fonts, c
         return false;
 
     const SDL_Color colorWhite = { 255, 255, 255, 255 };
-    gridRect = (FGridRect){ ARENA_WIDTH, 0, (float)graphicsDataContext->sidebarUI->width, 1 };
+    gridRect.h = 2;
 
     static TextCache cache001 = { 0 };
     if (!RenderText(graphicsDataContext, gridRect, 0.1f, "TETRIS", &cache001, fonts->mainFont, colorWhite)) return false;
@@ -246,7 +246,8 @@ bool DrawSidebar(GraphicsDataContext* graphicsDataContext, const Fonts* fonts, c
     char text[MAX_STRING_LENGTH];
     if (SDL_snprintf(text, 8, "%06d", gameDataContext->score) < 0) return false;
 
-    gridRect.y++;
+    gridRect.h = 1;
+    gridRect.y += 2;
     static TextCache cache002 = { 0 };
     if (!RenderText(graphicsDataContext, gridRect, 0.1f, text, &cache002, fonts->secondaryFont, colorWhite)) return false;
 
