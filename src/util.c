@@ -14,6 +14,5 @@ void Assert(const bool value, char* errorMessage)
     {
         SDL_Log("%s: %s", errorMessage, SDL_GetError());
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, errorMessage, SDL_GetError(), NULL);
-        assert(false);
     }
 }

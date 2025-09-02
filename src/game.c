@@ -40,8 +40,6 @@ bool GAME_Reset(GameDataContext* gameDataContext)
     gameDataContext->droppingTetromino->orientation = NORTH;
     gameDataContext->droppingTetromino->terminationTick = 0;
 
-
-
     return true;
 }
 

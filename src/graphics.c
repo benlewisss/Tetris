@@ -102,6 +102,27 @@ bool GFX_LoadTetrominoTextures(const GraphicsDataContext* graphicsDataContext)
     return true;
 }
 
+bool GFX_RenderGame(GraphicsDataContext* graphicsDataContext, GameDataContext* gameDataContext, Fonts* fonts)
+{
+    // Clear screen
+    SDL_SetRenderDrawColor(graphicsDataContext->renderer, 17, 17, 17, 255);
+    SDL_RenderClear(graphicsDataContext->renderer);
+
+    // TODO Move all of these graphics and rendering calls into one method in graphics.c
+    Assert(DrawDroppingTetromino(graphicsDataContext, gameDataContext), "Failed to draw dropping tetromino!\n");
+    Assert(DrawDroppingTetrominoGhost(graphicsDataContext, gameDataContext), "Failed to draw dropping tetromino ghost!\n");
+    Assert(DrawArena(graphicsDataContext, gameDataContext), "Failed to draw arena!\n");
+    Assert(DrawSidebar(graphicsDataContext, fonts, gameDataContext), "Failed to draw sidebar!\n");
+
+    if (gameDataContext->isGameOver)
+    {
+        DrawGameOverScreen(graphicsDataContext, fonts, gameDataContext);
+    }
+
+    return true;
+}
+
+
 bool DrawBlock(GraphicsDataContext* graphicsDataContext, SDL_Texture* texture, const Uint8 alpha, const int x, const int y)
 {
     if (x >= ARENA_WIDTH || x < 0 || y >= ARENA_HEIGHT || y < 0)
@@ -359,7 +380,6 @@ SDL_Texture* GenerateTextTexture(const GraphicsDataContext* graphicsDataContext,
         return cache->texture;
     }
 
-    SDL_Log("Cache miss!");
     // Cache miss
     SDL_DestroyTexture(cache->texture);
     SDL_Surface* surface = TTF_RenderText_Blended(font, text, 0, color);
