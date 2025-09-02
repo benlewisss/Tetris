@@ -56,7 +56,6 @@ typedef struct TextCache
 
     /** @brief Whether this cache object is valid, i.e. has a valid texture associated with some text */
     bool valid;
-
 } TextCache;
 
 /**
@@ -82,7 +81,6 @@ typedef struct Button
 
     ButtonCallback onClick;
     void* userData;
-
 } Button;
 
 /**
@@ -118,9 +116,7 @@ typedef struct GraphicsDataContext
 
     /** @brief A pointer to a sidebar UI struct. */
     SidebarUI* sidebarUI;
-
 } GraphicsDataContext;
-
 
 
 /**
@@ -142,6 +138,17 @@ bool GFX_Init(GraphicsDataContext* graphicsDataContext, Fonts* fonts, GameDataCo
  * @return True on success, false otherwise.
  */
 bool GFX_LoadTetrominoTextures(GraphicsDataContext* graphicsDataContext);
+
+/**
+ * @brief A wrapper function to render all graphics objects onto the window.
+ *
+ * @param graphicsDataContext A struct containing the graphics data to initialise.
+ * @param fonts A pointer to the fonts struct to load the fonts to.
+ * @param gameDataContext A struct containing the game data context.
+ *
+ * @return True on success, false otherwise.
+ */
+bool GFX_RenderGame(GraphicsDataContext* graphicsDataContext, GameDataContext* gameDataContext, Fonts* fonts);
 
 /**
  * @brief Draw a single block on the grid.

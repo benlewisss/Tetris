@@ -18,23 +18,29 @@ void GAME_Restart(void* data)
 
 bool GAME_Reset(GameDataContext* gameDataContext)
 {
+    gameDataContext->isGameOver = false;
+
     memset(gameDataContext->arena, 0,
         sizeof(gameDataContext->arena[0][0]) * ARENA_HEIGHT * ARENA_WIDTH);
 
     gameDataContext->score = 0;
     gameDataContext->level = 1;
 
+    // Reset tetromino bag
+    InitTetrominoBag(&gameDataContext->tetrominoBag);
+
     if (gameDataContext->droppingTetromino == NULL) {
         gameDataContext->droppingTetromino = SDL_calloc(1, sizeof(DroppingTetromino));
         if (!gameDataContext->droppingTetromino) return false;
     }
 
-    gameDataContext->droppingTetromino->shape = GetRandomTetrominoShape();
-    gameDataContext->droppingTetromino->y =
-        (gameDataContext->droppingTetromino->shape->identifier == I) ? -1 : 0;
+    gameDataContext->droppingTetromino->shape = NextTetrominoFromBag(&gameDataContext->tetrominoBag);
+    gameDataContext->droppingTetromino->y = (gameDataContext->droppingTetromino->shape->identifier == I) ? -1 : 0;
     gameDataContext->droppingTetromino->x = ((ARENA_WIDTH - TETROMINO_MAX_SIZE / 2) - 1) / 2;
     gameDataContext->droppingTetromino->orientation = NORTH;
     gameDataContext->droppingTetromino->terminationTick = 0;
+
+
 
     return true;
 }
@@ -45,25 +51,30 @@ void GAME_TogglePause(void* data)
     gameDataContext->isPaused = !gameDataContext->isPaused;
 }
 
+void GAME_Quit(void* data)
+{
+    GameDataContext* gameDataContext = (GameDataContext*)data;
+    gameDataContext->isRunning = false;
+}
+
 void GameIteration(GameDataContext* gameDataContext)
 {
-    if (gameDataContext->isPaused) return;
+    if (gameDataContext->isPaused || gameDataContext->isGameOver) return;
 
     // The time (in milliseconds) to drop a tetromino one cell (i.e. speed) for each of the tetris levels
-    static Uint64 gravityValues[MAX_LEVEL] = {1000, 793, 618, 473, 355, 262, 190, 135, 94, 64, 43, 28, 18, 11, 7, 5, 4, 3, 2, 1};
-
-    // Lock down time (in milliseconds) - how long the player should have to move a tetromino around on the board once
-    // it has made contact with the ground
-    static int lockDownTime = 500;
+    static Uint64 gravityValues[MAX_LEVEL] = { 1000, 793, 618, 473, 355, 262, 190, 135, 94, 64, 43, 28, 18, 11, 7, 5, 4, 3, 2, 1 };
 
     // Number of lines cleared on a particular level
     static int levelLinesCleared = 0;
     levelLinesCleared += ClearLines(gameDataContext);
-    
 
     // Check dropping tetromino is marked for termination and has passed Lock Down (See https://tetris.wiki/Tetris_Guideline#LockDown)
     if (gameDataContext->droppingTetromino->terminationTick)
     {
+        // Lock down time (in milliseconds) - how long the player should have to move a tetromino around on the board once
+        // it has made contact with the ground
+        const int lockDownTime = 500;
+
         // If the tetromino is in Lock Down, but moves to a position where it can drop, then we cancel the Lock Down
         if (!WillDroppingTetrominoCollide(gameDataContext, 0, 1, 0))
         {
@@ -92,9 +103,9 @@ void GameIteration(GameDataContext* gameDataContext)
 }
 
 bool WillDroppingTetrominoCollide(const GameDataContext* gameDataContext,
-                                     int translationX, 
-                                     int translationY,
-                                     const int rotationAmount)
+    int translationX,
+    int translationY,
+    const int rotationAmount)
 {
     const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = gameDataContext->droppingTetromino->shape->coordinates[((gameDataContext->droppingTetromino->orientation + rotationAmount) % 4 + 4) % 4];
 
@@ -137,21 +148,16 @@ void ResetDroppingTetromino(GameDataContext* gameDataContext)
         }
     }
 
-    gameDataContext->droppingTetromino->shape = GetTetrominoShapeByIdentifier(I);//GetRandomTetrominoShape();
-    // TODO Find a better way to do this: The I-Piece is the only piece who's initial starting location is offset
-    // downwards by one, so we do this in order to spawn the piece flush with the ceiling.
-    if (gameDataContext->droppingTetromino->shape->identifier == I)
-    {
-        gameDataContext->droppingTetromino->y = -1;
-    }
-    else
-    {
-        gameDataContext->droppingTetromino->y = 0;
-    }
+    gameDataContext->droppingTetromino->shape = NextTetrominoFromBag(&gameDataContext->tetrominoBag);
+    gameDataContext->droppingTetromino->y = (gameDataContext->droppingTetromino->shape->identifier == I) ? -1 : 0;
     gameDataContext->droppingTetromino->x = ((ARENA_WIDTH - TETROMINO_MAX_SIZE / 2) - 1) / 2;
     gameDataContext->droppingTetromino->orientation = NORTH;
-   
     gameDataContext->droppingTetromino->terminationTick = 0;
+
+    if (WillDroppingTetrominoCollide(gameDataContext, 0, 0, 0))
+    {
+        gameDataContext->isGameOver = true;
+    }
 }
 
 static void DropRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], const int dropToRow, const int dropAmount)
@@ -259,7 +265,7 @@ int ClearLines(GameDataContext* gameDataContext)
 
 bool WallKickDroppingTetromino(GameDataContext* gameDataContext, const int rotationDirection)
 {
-    if (gameDataContext->isPaused) return true;
+    if (gameDataContext->isPaused || gameDataContext->isGameOver) return true;
 
     // 2D array of coordinate pairs (3D) representing the Wall Kick Data (see https://tetris.wiki/Super_Rotation_System).
     // The first dimension is the orientation direction, the second dimension are one of the 5 tests, and the third
@@ -314,7 +320,7 @@ bool WallKickDroppingTetromino(GameDataContext* gameDataContext, const int rotat
     }
 
     // Pick the correct wall kick data set (I-piece has a special case)
-    const int8_t (*wallKickData)[5][2] = (gameDataContext->droppingTetromino->shape->identifier == I)
+    const int8_t(*wallKickData)[5][2] = (gameDataContext->droppingTetromino->shape->identifier == I)
         ? SPECIAL_WALL_KICK_DATA
         : WALL_KICK_DATA;
 
@@ -337,7 +343,7 @@ bool WallKickDroppingTetromino(GameDataContext* gameDataContext, const int rotat
 
 void HardDropTetromino(GameDataContext* gameDataContext)
 {
-    if (gameDataContext->isPaused) return;
+    if (gameDataContext->isPaused || gameDataContext->isGameOver) return;
     while (!WillDroppingTetrominoCollide(gameDataContext, 0, 1, 0))
     {
         gameDataContext->score += 2;
@@ -349,7 +355,7 @@ void HardDropTetromino(GameDataContext* gameDataContext)
 
 void SoftDropTetromino(GameDataContext* gameDataContext)
 {
-    if (gameDataContext->isPaused) return;
+    if (gameDataContext->isPaused || gameDataContext->isGameOver) return;
     if (WillDroppingTetrominoCollide(gameDataContext, 0, 1, 0))
     {
         if (gameDataContext->droppingTetromino->terminationTick == 0) gameDataContext->droppingTetromino->terminationTick = SDL_GetTicks();
@@ -363,6 +369,6 @@ void SoftDropTetromino(GameDataContext* gameDataContext)
 
 void ShiftTetromino(GameDataContext* gameDataContext, const int translation)
 {
-    if (gameDataContext->isPaused) return;
+    if (gameDataContext->isPaused || gameDataContext->isGameOver) return;
     if (!WillDroppingTetrominoCollide(gameDataContext, translation, 0, 0)) gameDataContext->droppingTetromino->x += translation;
 }

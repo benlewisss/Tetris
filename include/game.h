@@ -24,11 +24,8 @@ enum GameConfig
  */
 typedef struct GameDataContext
 {
-    /** @brief Player's current score. */
-    int score;
-
-    /** @brief Player's current level. */
-    int level;
+    /** @brief Whether the game is running. If false, SDL will shut down */
+    bool isRunning;
 
     /** @brief Whether the game is currently paused. */
     bool isPaused;
@@ -36,11 +33,21 @@ typedef struct GameDataContext
     /** @brief Whether the game is currently over. */
     bool isGameOver;
 
+    /** @brief Player's current score. */
+    int score;
+
+    /** @brief Player's current level. */
+    int level;
+
     /** @brief The state the of the tetris arena, where each cell is either empty or has a ::TetrominoIdentifier value. */
     TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH];
 
     /** @brief A pointer to the state of the currently dropping tetromino. */
     DroppingTetromino* droppingTetromino;
+
+
+    /** @brief The 'bag' containing the possible tetrominoes. */
+    TetrominoBag tetrominoBag;
 
 } GameDataContext;
 
@@ -79,6 +86,14 @@ void GAME_Restart(void* data);
  * @return True on success, false otherwise.
  */
 void GAME_TogglePause(void* data);
+
+
+/**
+ * @brief Quit the game.
+ *
+ * @param data A struct containing the game data to initialise.
+ */
+void GAME_Quit(void* data);
 
 /**
  * @brief The method handling all the game logic that should happen each frame.
