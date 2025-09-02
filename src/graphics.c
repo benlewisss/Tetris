@@ -13,8 +13,8 @@
 bool GFX_Init(GraphicsDataContext* graphicsDataContext, Fonts* fonts, GameDataContext* gameDataContext)
 {
     // Load fonts
-    fonts->mainFont = TTF_OpenFont("resources/fonts/doto_extra_bold.ttf", 150);
-    fonts->secondaryFont = TTF_OpenFont("resources/fonts/doto_regular.ttf", 150);
+    if (!(fonts->mainFont = TTF_OpenFont("resources/fonts/doto_extra_bold.ttf", 150))) return false;
+    if (!(fonts->secondaryFont = TTF_OpenFont("resources/fonts/doto_regular.ttf", 150))) return false;
 
     SidebarUI* sidebar = SDL_calloc(1, sizeof(SidebarUI));
 
