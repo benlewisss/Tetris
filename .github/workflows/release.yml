@@ -16,7 +16,7 @@ jobs:
         os: [windows-latest, ubuntu-latest, macos-latest]
 
     env:
-      VCPKG_ROOT: ${{ runner.temp }}/vcpkg
+      VCPKG_ROOT: ${{ env.RUNNER_TEMP }}/vcpkg
       VERSION: ${{ github.ref_name }}
 
     steps:
