@@ -1,6 +1,7 @@
 name: CMake with vcpkg
 
 on:
+  workflow_dispatch:
   push:
     branches: [ "main" ]
   pull_request:
