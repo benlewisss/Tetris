@@ -3,9 +3,8 @@ name: CMake with vcpkg
 on:
   workflow_dispatch:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    tags:
+      - '*'
 
 jobs:
   build:
@@ -15,7 +14,6 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
-        build_type: [Release, Debug]
 
     steps:
       - uses: actions/checkout@v4
@@ -25,25 +23,25 @@ jobs:
         with:
           vcpkgJsonGlob: 'vcpkg.json'
 
-      - name: Set up CMake
-        uses: lukka/get-cmake@v3
+      - name: Set up CMake (latest)
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: '3.27.x'
 
       - name: Configure (CMakePresets)
         run: cmake --preset vcpkg
 
-      - name: Build
-        run: cmake --build --preset build-${{ matrix.build_type }}
+      - name: Build (Release)
+        run: cmake --build --preset build-release
 
-      - name: Run tests
-        run: ctest --preset build-${{ matrix.build_type }}
+      - name: Run tests (Release)
+        run: ctest --preset build-release
 
-      - name: Package (Release only)
-        if: matrix.build_type == 'Release'
+      - name: Package (Release)
         run: cmake --build --preset package-release
 
-      - name: Upload package
-        if: matrix.build_type == 'Release'
+      - name: Upload package artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Tetris-${{ matrix.os }}-${{ matrix.build_type }}
+          name: Tetris-${{ matrix.os }}-Release
           path: build/Tetris-*.zip
