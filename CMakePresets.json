@@ -1,13 +1,42 @@
-﻿{
-  "version": 2,
+﻿//{
+//  "version": 2,
+//  "configurePresets": [
+//    {
+//      "name": "vcpkg",
+//      "generator": "Ninja",
+//      "binaryDir": "${sourceDir}/build",
+//      "cacheVariables": {
+//        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+//      }
+//    }
+//  ]
+//}
+{
+  "version": 3,
   "configurePresets": [
     {
       "name": "vcpkg",
-      "generator": "Ninja",
+      "displayName": "Configure with vcpkg (Ninja)",
+      "description": "Use vcpkg toolchain and Ninja generator",
+      "generator": "Ninja Multi-Config",
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
         "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
       }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "build-debug",
+      "displayName": "Build Debug",
+      "configurePreset": "vcpkg",
+      "configuration": "Debug"
+    },
+    {
+      "name": "build-release",
+      "displayName": "Build Release",
+      "configurePreset": "vcpkg",
+      "configuration": "Release"
     }
   ]
 }
