@@ -99,11 +99,29 @@ endif()
 
 # --- CPack configuration ---
 set(CPACK_PACKAGE_NAME "Tetris")
-set(CPACK_PACKAGE_VERSION "1.0.0")
-set(CPACK_PACKAGE_VENDOR "Ben Lewis")
+# Use value passed from CI, or fallback to git describe, or hardcode "0.0.0" when generating package.
+if(NOT DEFINED CPACK_PACKAGE_VERSION)
+    find_package(Git QUIET)
+    if(GIT_FOUND)
+        execute_process(
+            COMMAND ${GIT_EXECUTABLE} describe --tags --abbrev=0
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+            OUTPUT_VARIABLE GIT_TAG
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+        if(GIT_TAG)
+            set(CPACK_PACKAGE_VERSION "${GIT_TAG}")
+        else()
+            set(CPACK_PACKAGE_VERSION "0.0.0")
+        endif()
+    else()
+        set(CPACK_PACKAGE_VERSION "0.0.0")
+    endif()
+endif()
 
-# ZIP puts files as laid out by install() (exe at root, resources/ alongside)
-set(CPACK_GENERATOR "ZIP")
 set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}")
+set(CPACK_PACKAGE_VENDOR "Ben Lewis")
+set(CPACK_GENERATOR "ZIP")
 
 include(CPack)
+
