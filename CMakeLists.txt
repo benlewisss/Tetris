@@ -37,7 +37,10 @@ target_link_libraries(Tetris PRIVATE
     SDL3_ttf::SDL3_ttf
 )
 
-# --- Copy resources at build time ---
+# --- Resource path macro (relative; works in build + install trees) ---
+target_compile_definitions(Tetris PRIVATE RESOURCE_PATH="resources/")
+
+# --- Copy resources next to the built exe for local runs (build tree) ---
 add_custom_target(copy_resources ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory
             ${CMAKE_SOURCE_DIR}/resources
@@ -46,55 +49,61 @@ add_custom_target(copy_resources ALL
 )
 add_dependencies(Tetris copy_resources)
 
-# --- Provide resource path macro for code ---
-target_compile_definitions(Tetris PRIVATE RESOURCE_PATH="$<TARGET_FILE_DIR:Tetris>/resources/")
-
 # --- Installation rules ---
-install(TARGETS Tetris RUNTIME DESTINATION bin)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/resources DESTINATION bin)
-install(FILES "${CMAKE_SOURCE_DIR}/LICENSE.txt" "${CMAKE_SOURCE_DIR}/README.md" DESTINATION ".")
+# Put exe/.app at the package root; resources under resources/
+install(TARGETS Tetris
+    RUNTIME DESTINATION .
+    BUNDLE  DESTINATION .
+)
 
-# --- Windows: bundle DLLs in Release ---
-if(WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Release")
-    include(BundleUtilities)
-    install(CODE "
-        include(BundleUtilities)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/resources/ DESTINATION resources)
+install(FILES "${CMAKE_SOURCE_DIR}/LICENSE.txt" "${CMAKE_SOURCE_DIR}/README.md" DESTINATION .)
 
-        # Installed executable
-        set(EXECUTABLE \"\${CMAKE_INSTALL_PREFIX}/bin/Tetris${CMAKE_EXECUTABLE_SUFFIX}\")
-
-        # Directories to search for DLLs
-        set(DIRS_TO_SEARCH
-            \"$<TARGET_FILE_DIR:SDL3>\"
-            \"$<TARGET_FILE_DIR:SDL3_image>\"
-            \"$<TARGET_FILE_DIR:SDL3_ttf>\"
-        )
-
-        # Copy DLLs next to executable
-        fixup_bundle(\"\${EXECUTABLE}\" \"\" \"\${DIRS_TO_SEARCH}\")
-    " COMPONENT Runtime)
-endif()
-
-# --- macOS: create .app bundle ---
+# --- macOS bundle specifics (optional Info.plist) ---
 if(APPLE)
-    set(MACOS_BUNDLE_NAME "Tetris.app")
     set_target_properties(Tetris PROPERTIES
         MACOSX_BUNDLE TRUE
         MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/Info.plist"
     )
-    install(TARGETS Tetris BUNDLE DESTINATION bin)
-    install(DIRECTORY ${CMAKE_SOURCE_DIR}/resources DESTINATION bin/${MACOS_BUNDLE_NAME}/Contents/Resources)
+    # Place .app at root already via BUNDLE DESTINATION .
+    # Place resources inside the app for runtime if you prefer:
+    # install(DIRECTORY ${CMAKE_SOURCE_DIR}/resources DESTINATION Tetris.app/Contents/Resources)
 endif()
 
-# --- Linux: ensure resources installed alongside executable ---
-if(UNIX AND NOT APPLE)
-    # Already handled by install(RUNTIME DESTINATION bin) and install(DIRECTORY ...)
+# --- Windows: bundle DLLs in Release using BundleUtilities ---
+# We configure a small CMake script with resolved vcpkg paths and run it at install time.
+if(WIN32)
+    # These variables come from vcpkg toolchain; keep them empty-safe
+    set(_VCPKG_INSTALLED_DIR "${VCPKG_INSTALLED_DIR}")
+    set(_VCPKG_TARGET_TRIPLET "${VCPKG_TARGET_TRIPLET}")
+
+    # Generate a post-install fixup script with concrete paths
+    configure_file(
+        ${CMAKE_SOURCE_DIR}/cmake/WinFixupBundle.cmake.in
+        ${CMAKE_CURRENT_BINARY_DIR}/WinFixupBundle.cmake
+        @ONLY
+    )
+
+    # Only run the fixup for Release zips (prevents Debug CRT surprises)
+    install(CODE "
+        if(\"\${CMAKE_INSTALL_CONFIG_NAME}\" STREQUAL \"Release\")
+            message(STATUS \"Running BundleUtilities fixup (Release)...\")
+            include(\"${CMAKE_CURRENT_BINARY_DIR}/WinFixupBundle.cmake\")
+        else()
+            message(STATUS \"Skipping BundleUtilities fixup (config=\${CMAKE_INSTALL_CONFIG_NAME})\")
+        endif()
+    " COMPONENT Runtime)
 endif()
+
+# --- Linux: nothing special; resources are installed already
 
 # --- CPack configuration ---
 set(CPACK_PACKAGE_NAME "Tetris")
 set(CPACK_PACKAGE_VERSION "1.0.0")
 set(CPACK_PACKAGE_VENDOR "Ben Lewis")
+
+# ZIP puts files as laid out by install() (exe at root, resources/ alongside)
 set(CPACK_GENERATOR "ZIP")
 set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}")
+
 include(CPack)

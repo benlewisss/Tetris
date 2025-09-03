@@ -1,0 +1,33 @@
+# cmake/WinFixupBundle.cmake.in
+include(BundleUtilities)
+
+# Installed executable location (root of the package)
+set(_exe "${CMAKE_INSTALL_PREFIX}/Tetris.exe")
+
+# Where to search for runtime DLLs:
+# 1) vcpkg installed bin folders (release + debug, in case some deps are only there)
+# 2) the install root (already contains Tetris.exe)
+# Note: these @VAR@ are replaced by configure_file() at generate-time
+set(_dirs_to_search "")
+if("@_VCPKG_INSTALLED_DIR@" STREQUAL "" OR "@_VCPKG_TARGET_TRIPLET@" STREQUAL "")
+    message(WARNING "VCPKG variables not set; attempting default VCPKG_ROOT-based search.")
+    if(DEFINED ENV{VCPKG_ROOT})
+        list(APPEND _dirs_to_search
+            "$ENV{VCPKG_ROOT}/installed/x64-windows/bin"
+            "$ENV{VCPKG_ROOT}/installed/x64-windows/debug/bin"
+        )
+    endif()
+else()
+    list(APPEND _dirs_to_search
+        "@_VCPKG_INSTALLED_DIR@/@_VCPKG_TARGET_TRIPLET@/bin"
+        "@_VCPKG_INSTALLED_DIR@/@_VCPKG_TARGET_TRIPLET@/debug/bin"
+    )
+endif()
+list(APPEND _dirs_to_search "${CMAKE_INSTALL_PREFIX}")
+
+# Actually copy the dependent DLLs next to the exe.
+# Second argument is the list of libs to embed explicitly (we let it auto-resolve -> "")
+fixup_bundle("${_exe}" "" "${_dirs_to_search}")
+
+# Optional: also bring UCRT if needed (newer CMake does this automatically with fixup_bundle)
+# BundleUtilities will recurse dependencies as needed.

@@ -1,0 +1,48 @@
+name: Build & Package (Windows)
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  windows-zip:
+    runs-on: windows-latest
+
+    env:
+      VCPKG_ROOT: ${{ runner.temp }}\vcpkg
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup vcpkg (with manifest)
+        uses: lukka/run-vcpkg@v11
+        with:
+          setupOnly: true
+          vcpkgDirectory: ${{ env.VCPKG_ROOT }}
+
+      - name: Configure (Ninja Multi-Config + vcpkg)
+        run: cmake --preset vcpkg
+        env:
+          VCPKG_ROOT: ${{ env.VCPKG_ROOT }}
+
+      - name: Build Release
+        run: cmake --build --preset build-release
+
+      - name: Package (CPack ZIP)
+        run: cmake --build --preset package-release
+
+      - name: Find ZIP
+        shell: pwsh
+        run: |
+          $zip = Get-ChildItem -Recurse -Filter "Tetris-*.zip" "${{ github.workspace }}\build\_CPack_Packages\"
+          if (-not $zip) { throw "ZIP not found" }
+          echo "ZIP_PATH=$($zip.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Tetris-Windows-ZIP
+          path: ${{ env.ZIP_PATH }}

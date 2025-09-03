@@ -1,17 +1,4 @@
-﻿//{
-//  "version": 2,
-//  "configurePresets": [
-//    {
-//      "name": "vcpkg",
-//      "generator": "Ninja",
-//      "binaryDir": "${sourceDir}/build",
-//      "cacheVariables": {
-//        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
-//      }
-//    }
-//  ]
-//}
-{
+﻿{
   "version": 3,
   "configurePresets": [
     {
@@ -37,6 +24,13 @@
       "displayName": "Build Release",
       "configurePreset": "vcpkg",
       "configuration": "Release"
+    },
+    {
+      "name": "package-release",
+      "displayName": "Package Release (ZIP)",
+      "configurePreset": "vcpkg",
+      "configuration": "Release",
+      "targets": [ "package" ]
     }
   ]
 }
