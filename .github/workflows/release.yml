@@ -1,56 +1,48 @@
-name: Build & Package (All Platforms)
+name: CMake with vcpkg
 
 on:
-  workflow_dispatch:
   push:
-    tags:
-      - "v*"
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   build:
-    name: Package (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
 
     strategy:
+      fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
-
-    env:
-      VCPKG_ROOT: ${{ env.RUNNER_TEMP }}/vcpkg
-      VERSION: ${{ github.ref_name }}
+        os: [ubuntu-latest, windows-latest]
+        build_type: [Release, Debug]
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - uses: actions/checkout@v4
 
-      - name: Setup vcpkg (with manifest)
+      - name: Set up vcpkg (with caching)
         uses: lukka/run-vcpkg@v11
         with:
-          setupOnly: true
-          vcpkgDirectory: ${{ env.VCPKG_ROOT }}
+          vcpkgJsonGlob: 'vcpkg.json'
 
-      - name: Configure (with version from tag)
-        run: cmake --preset vcpkg -DCPACK_PACKAGE_VERSION=${{ env.VERSION }}
-        env:
-          VCPKG_ROOT: ${{ env.VCPKG_ROOT }}
+      - name: Set up CMake
+        uses: lukka/get-cmake@v3
 
-      - name: Build Release
-        run: cmake --build --preset build-release
+      - name: Configure (CMakePresets)
+        run: cmake --preset vcpkg
 
-      - name: Package (CPack ZIP)
+      - name: Build
+        run: cmake --build --preset build-${{ matrix.build_type }}
+
+      - name: Run tests
+        run: ctest --preset build-${{ matrix.build_type }}
+
+      - name: Package (Release only)
+        if: matrix.build_type == 'Release'
         run: cmake --build --preset package-release
 
-      - name: Find ZIP
-        shell: pwsh
-        run: |
-          $zip = Get-ChildItem -Recurse -Filter "Tetris-*.zip" "${{ github.workspace }}/build/_CPack_Packages"
-          if (-not $zip) { throw "ZIP not found" }
-          echo "ZIP_PATH=$($zip.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
-
-      - name: Upload artifact
+      - name: Upload package
+        if: matrix.build_type == 'Release'
         uses: actions/upload-artifact@v4
         with:
-          name: Tetris-${{ env.VERSION }}-${{ runner.os }}-ZIP
-          path: ${{ env.ZIP_PATH }}
+          name: Tetris-${{ matrix.os }}-${{ matrix.build_type }}
+          path: build/Tetris-*.zip
