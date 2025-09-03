@@ -5,6 +5,7 @@ How to build, install, and package the **Tetris** project into a ZIP archive.
 ---
 
 ## Project layout
+```sh
 project-root/
 ├── cmake/
 │ └── WinFixupBundle.cmake.in # Windows DLL bundling script template
@@ -15,6 +16,7 @@ project-root/
 ├── CMakePresets.json
 ├── vcpkg.json
 ├── vcpkg-configuration.json
+```
 
 ---
 
@@ -54,3 +56,4 @@ cmake --build --preset build-release
 
 # Build and package Release (ZIP)
 cmake --build --preset package-release
+```

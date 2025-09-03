@@ -67,11 +67,10 @@ if(APPLE)
     )
     # Place .app at root already via BUNDLE DESTINATION .
     # Place resources inside the app for runtime if you prefer:
-    # install(DIRECTORY ${CMAKE_SOURCE_DIR}/resources DESTINATION Tetris.app/Contents/Resources)
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/resources DESTINATION Tetris.app/Contents/Resources)
 endif()
 
 # --- Windows: bundle DLLs in Release using BundleUtilities ---
-# We configure a small CMake script with resolved vcpkg paths and run it at install time.
 if(WIN32)
     # These variables come from vcpkg toolchain; keep them empty-safe
     set(_VCPKG_INSTALLED_DIR "${VCPKG_INSTALLED_DIR}")
@@ -95,33 +94,12 @@ if(WIN32)
     " COMPONENT Runtime)
 endif()
 
-# --- Linux: nothing special; resources are installed already
-
 # --- CPack configuration ---
 set(CPACK_PACKAGE_NAME "Tetris")
-# Use value passed from CI, or fallback to git describe, or hardcode "0.0.0" when generating package.
-if(NOT DEFINED CPACK_PACKAGE_VERSION)
-    find_package(Git QUIET)
-    if(GIT_FOUND)
-        execute_process(
-            COMMAND ${GIT_EXECUTABLE} describe --tags --abbrev=0
-            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-            OUTPUT_VARIABLE GIT_TAG
-            OUTPUT_STRIP_TRAILING_WHITESPACE
-        )
-        if(GIT_TAG)
-            set(CPACK_PACKAGE_VERSION "${GIT_TAG}")
-        else()
-            set(CPACK_PACKAGE_VERSION "0.0.0")
-        endif()
-    else()
-        set(CPACK_PACKAGE_VERSION "0.0.0")
-    endif()
-endif()
-
-set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}")
+set(CPACK_PACKAGE_VERSION "1.1.0")
 set(CPACK_PACKAGE_VENDOR "Ben Lewis")
+
 set(CPACK_GENERATOR "ZIP")
+set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}")
 
 include(CPack)
-
