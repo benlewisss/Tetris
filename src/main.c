@@ -35,6 +35,8 @@ typedef struct
 
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 {
+    SDL_SetLogPriorities(SDL_LOG_PRIORITY_DEBUG);
+
     // Setup application metadata
     Assert(SDL_SetAppMetadata("TETRIS", "1.0", "Tetris"), "Failed to initialise app metadata!\n");
 
@@ -47,6 +49,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
     Assert(SDL_Init(SDL_INIT_VIDEO), "Failed to initialise SDL!\n");
     Assert(TTF_Init(), "Failed to initialise TTF!\n");
 
+    // Initialise subsystems
     Fonts* fonts = SDL_calloc(1, sizeof(Fonts));
     GameDataContext* gameDataContext = SDL_calloc(1, sizeof(GameDataContext));
     GraphicsDataContext* graphicsDataContext = SDL_calloc(1, sizeof(GraphicsDataContext));
@@ -55,9 +58,8 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
     if (!state) return SDL_APP_FAILURE;
 
     Assert(GAME_Init(gameDataContext), "Failed to initialise game data!\n");
-    Assert(GFX_Init(graphicsDataContext, fonts, gameDataContext), "Failed to initialise graphics data!\n");
-    Assert(GFX_LoadTetrominoTextures(graphicsDataContext), "Failed to load resources!\n");
-
+    Assert(GFX_Init(graphicsDataContext, gameDataContext, fonts), "Failed to initialise graphics data!\n");
+    Assert(GFX_LoadTetrominoTextures(graphicsDataContext), "Failed to load tetromino textures!\n");
 
     state->graphicsDataContext = graphicsDataContext;
     state->gameDataContext = gameDataContext;
@@ -73,26 +75,26 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
 {
     AppState* state = appstate;
 
-    // TODO Fix delay after key repetition https://lazyfoo.net/tutorials/SDL/18_key_states/index.php
-    // https://stackoverflow.com/questions/21311824/sdl2-key-repeat-delay
-
     switch (event->type)
     {
     case SDL_EVENT_QUIT:
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Game quit requested...");
         state->gameDataContext->isRunning = false;
         break;
 
     case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
-        SDL_Log("Window close requested");
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Window close requested...");
         state->gameDataContext->isRunning = false;
         break;
 
     case SDL_EVENT_WINDOW_RESIZED:
+        SDL_LogInfo(SDL_LOG_CATEGORY_VIDEO, "Window resize requested...");
         ResizeGridSquares(state->graphicsDataContext, event->window.data1, event->window.data2);
         break;
 
     case SDL_EVENT_MOUSE_BUTTON_DOWN:
     case SDL_EVENT_MOUSE_BUTTON_UP:
+        SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "User Input - Mouse Button.");
     case SDL_EVENT_MOUSE_MOTION:
         HandleButtonEvent(state->graphicsDataContext, event, &state->graphicsDataContext->sidebarUI->quitButton);
         HandleButtonEvent(state->graphicsDataContext, event, &state->graphicsDataContext->sidebarUI->pauseButton);
@@ -131,8 +133,12 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
 
         if (event->key.key == SDLK_ESCAPE)
         {
-            SDL_Log("ESC pressed, exiting!");
+            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "ESC pressed, exiting!");
             state->gameDataContext->isRunning = false;
+        }
+        else
+        {
+            SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "User Input - Key: %s.", SDL_GetKeyName(event->key.key));
         }
 
         break;
@@ -148,14 +154,9 @@ SDL_AppResult SDL_AppIterate(void* appstate)
 {
     const AppState* state = (AppState*)appstate;
 
-    // Clear screen
-    SDL_SetRenderDrawColor(state->graphicsDataContext->renderer, 17, 17, 17, 255);
-    SDL_RenderClear(state->graphicsDataContext->renderer);
-
     GFX_RenderGame(state->graphicsDataContext, state->gameDataContext, state->fonts);
     Assert(SDL_RenderPresent(state->graphicsDataContext->renderer), "Failed to render previous draws!\n");
-    GameIteration(state->gameDataContext);
-
+    GAME_Iteration(state->gameDataContext);
 
     return state->gameDataContext->isRunning ? SDL_APP_CONTINUE : SDL_APP_SUCCESS; // return SDL_APP_SUCCESS to quit
 }
@@ -167,6 +168,8 @@ void SDL_AppQuit(void* appstate, SDL_AppResult result)
     if (appstate != NULL)
     {
         AppState* state = appstate;
+
+        SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Freeing state...");
         if (state->graphicsDataContext->renderer) SDL_DestroyRenderer(state->graphicsDataContext->renderer);
         if (state->graphicsDataContext->window) SDL_DestroyWindow(state->graphicsDataContext->window);
         SDL_free(state->graphicsDataContext->sidebarUI);

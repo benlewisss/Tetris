@@ -11,13 +11,10 @@
  */
 enum GraphicsConfig
 {
-    /** @brief The width (in grid squares of size gridSquareSize) of the sidebar. */
-    SIDEBAR_GRID_WIDTH = 3,
-
-    /** @brief The width (in grid squares of size gridSquareSize) of the window. */
+    /** @brief How many (dynamic resizable) unit grid alignment squares wide the window is. */
     WINDOW_GRID_WIDTH = 13,
 
-    /** @brief The height (in grid squares of size gridSquareSize) of the window. */
+    /** @brief How many (dynamic resizable) unit grid alignment squares high the window is. */
     WINDOW_GRID_HEIGHT = 20,
 };
 
@@ -39,6 +36,7 @@ typedef struct FGridRect
     float y;
     float w;
     float h;
+
 } FGridRect;
 
 /**
@@ -64,7 +62,7 @@ typedef struct TextCache
 typedef void (*ButtonCallback)(void* userData);
 
 /**
- * @brief A struct containing 
+ * @brief A struct containing button attributes.
  */
 typedef struct Button
 {
@@ -88,11 +86,18 @@ typedef struct Button
  */
 typedef struct SidebarUI
 {
-    /** @brief The width of the SidebarUI in grid alignment squares */
+    /** @brief The width (in grid squares of size gridSquareSize) of the sidebar. */
     int width;
+
+    /** @brief The restart button object belonging to the sidebar. */
     Button restartButton;
+
+    /** @brief The pause button object belonging to the sidebar. */
     Button pauseButton;
+
+    /** @brief The quit button object belonging to the sidebar. */
     Button quitButton;
+
 } SidebarUI;
 
 /**
@@ -123,12 +128,12 @@ typedef struct GraphicsDataContext
  * @brief Initialises the graphicsData values.
  *
  * @param graphicsDataContext A struct containing the graphics data to initialise.
- * @param fonts A pointer to the fonts struct to load the fonts to.
  * @param gameDataContext A struct containing the game data context.
+ * @param fonts A pointer to the fonts struct to load the fonts to.
  *
  * @return True on success, false otherwise.
  */
-bool GFX_Init(GraphicsDataContext* graphicsDataContext, Fonts* fonts, GameDataContext* gameDataContext);
+bool GFX_Init(GraphicsDataContext* graphicsDataContext, GameDataContext* gameDataContext, Fonts* fonts);
 
 /**
  * @brief Loads resources into memory, including tetromino square textures

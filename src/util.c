@@ -19,8 +19,7 @@ void Assert(const bool value, const char* errorMessage)
 void FatalError(const char* errorMessage)
 {
     const char* sdlError = SDL_GetError();
-
-    SDL_Log("FATAL ERROR: %s: %s", errorMessage, sdlError);
+    SDL_LogCritical(SDL_LOG_CATEGORY_APPLICATION,"%s - %s", errorMessage, sdlError);
     SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
         "Fatal Error",
         sdlError && *sdlError ? sdlError : errorMessage,

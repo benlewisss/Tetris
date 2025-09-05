@@ -6,6 +6,7 @@
 
 bool GAME_Init(GameDataContext* gameDataContext)
 {
+    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Initialising Tetris game...");
     gameDataContext->droppingTetromino = NULL;
     return GAME_Reset(gameDataContext);
 }
@@ -55,7 +56,7 @@ void GAME_Quit(void* data)
     gameDataContext->isRunning = false;
 }
 
-void GameIteration(GameDataContext* gameDataContext)
+void GAME_Iteration(GameDataContext* gameDataContext)
 {
     if (gameDataContext->isPaused || gameDataContext->isGameOver) return;
 

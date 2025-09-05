@@ -103,7 +103,7 @@ void GAME_Quit(void* data);
  * 
  * @param gameDataContext A struct containing the game data context.
  */
-void GameIteration(GameDataContext* gameDataContext);
+void GAME_Iteration(GameDataContext* gameDataContext);
 
 
 /**
