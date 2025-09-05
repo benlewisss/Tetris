@@ -336,7 +336,8 @@ bool WallKickDroppingTetromino(GameDataContext* gameDataContext, const int rotat
         }
     }
 
-    return false;
+    // This means that the tetromino was blocked, not that it failed to rotate.
+    return true;
 }
 
 void HardDropTetromino(GameDataContext* gameDataContext)

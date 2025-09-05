@@ -156,7 +156,7 @@ void ResetDroppingTetromino(GameDataContext* gameDataContext);
  * @param gameDataContext A struct containing the game data context.
  * @param rotationDirection The direction to rotate the tetromino, 1 for right, -1 for left. 
  *
- * @returns True on success, false otherwise.
+ * @returns True if the tetromino wall-kicked or was blocked from wall-kicking, false if an error occured.
  */
 bool WallKickDroppingTetromino(GameDataContext* gameDataContext, int rotationDirection);
 
