@@ -23,6 +23,9 @@ static const struct
     {SDL_PROP_APP_METADATA_TYPE_STRING, "Tetris"}
 };
 
+/**
+ * @brief A struct containing the main state of the program.
+ */
 typedef struct
 {
     GameDataContext* gameDataContext;
@@ -47,14 +50,14 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
     Fonts* fonts = SDL_calloc(1, sizeof(Fonts));
     GameDataContext* gameDataContext = SDL_calloc(1, sizeof(GameDataContext));
     GraphicsDataContext* graphicsDataContext = SDL_calloc(1, sizeof(GraphicsDataContext));
-    
+
     AppState* state = SDL_calloc(1, sizeof(AppState));
     if (!state) return SDL_APP_FAILURE;
 
     Assert(GAME_Init(gameDataContext), "Failed to initialise game data!\n");
     Assert(GFX_Init(graphicsDataContext, fonts, gameDataContext), "Failed to initialise graphics data!\n");
     Assert(GFX_LoadTetrominoTextures(graphicsDataContext), "Failed to load resources!\n");
-    
+
 
     state->graphicsDataContext = graphicsDataContext;
     state->gameDataContext = gameDataContext;
@@ -152,7 +155,7 @@ SDL_AppResult SDL_AppIterate(void* appstate)
     GFX_RenderGame(state->graphicsDataContext, state->gameDataContext, state->fonts);
     Assert(SDL_RenderPresent(state->graphicsDataContext->renderer), "Failed to render previous draws!\n");
     GameIteration(state->gameDataContext);
-    
+
 
     return state->gameDataContext->isRunning ? SDL_APP_CONTINUE : SDL_APP_SUCCESS; // return SDL_APP_SUCCESS to quit
 }

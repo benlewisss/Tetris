@@ -8,11 +8,14 @@
  */
 enum GameConfig
 {
-    /** @brief The width of the game arena.*/
+    /** @brief The width of the game arena. */
     ARENA_WIDTH = 10,
 
-    /** @brief The height of the game arena.*/
+    /** @brief The height of the game arena. */
     ARENA_HEIGHT = 20,
+
+    /** @brief The maximum level the player can reach. */
+    MAX_LEVEL = 20,
 };
 
 
