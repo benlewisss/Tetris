@@ -65,14 +65,17 @@ if(APPLE)
         MACOSX_BUNDLE TRUE
         MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/Info.plist"
     )
-    # Place .app at root already via BUNDLE DESTINATION .
-    # Place resources inside the app for runtime if you prefer:
+    # Place .app at root already via BUNDLE DESTINATION.
+    # Place resources inside the app for runtime.
     install(DIRECTORY ${CMAKE_SOURCE_DIR}/resources DESTINATION Tetris.app/Contents/Resources)
 endif()
 
 # --- Windows: bundle DLLs in Release using BundleUtilities ---
 if(WIN32)
-    # These variables come from vcpkg toolchain; keep them empty-safe
+    # EXE Icon
+if(WIN32)
+    target_sources(Tetris PRIVATE ${CMAKE_SOURCE_DIR}/icon.rc)
+endif()
     set(_VCPKG_INSTALLED_DIR "${VCPKG_INSTALLED_DIR}")
     set(_VCPKG_TARGET_TRIPLET "${VCPKG_TARGET_TRIPLET}")
 

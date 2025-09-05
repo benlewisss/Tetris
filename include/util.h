@@ -15,7 +15,7 @@ enum MainConfig
  * @param value The boolean value to assert.
  * @param errorMessage The error message that is logged upon failure.
  */
-void Assert(bool value, char* errorMessage);
+void Assert(bool value, const char* errorMessage);
 
 /**
  * @brief Show an SDL_Error message, log error details, and (attempt to) gracefully shut down the program.
