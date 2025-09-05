@@ -18,8 +18,6 @@ enum GameConfig
     MAX_LEVEL = 20,
 };
 
-
-
 /** 
  *  @brief A struct that holds the current game state: score, level, arena and currently dropping tetromino.
  *

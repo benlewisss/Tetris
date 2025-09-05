@@ -255,6 +255,7 @@ bool RenderText(GraphicsDataContext* graphicsDataContext, FGridRect gridRect, fl
  *
  * @param graphicsDataContext A struct containing the graphics data context.
  * @param button A pointer to the button to render.
+ *
  * @return True if success, false otherwise.
  */
 bool RenderButton(GraphicsDataContext* graphicsDataContext, Button* button);

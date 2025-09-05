@@ -6,6 +6,8 @@
 
 bool GAME_Init(GameDataContext* gameDataContext)
 {
+    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Calling %s...", __func__);
+
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Initialising Tetris game...");
     gameDataContext->droppingTetromino = NULL;
     return GAME_Reset(gameDataContext);
@@ -13,16 +15,20 @@ bool GAME_Init(GameDataContext* gameDataContext)
 
 void GAME_Restart(void* data)
 {
+    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Calling %s...", __func__);
+
     GameDataContext* gameDataContext = (GameDataContext*)data;
     GAME_Reset(gameDataContext);
 }
 
 bool GAME_Reset(GameDataContext* gameDataContext)
 {
+    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Calling %s...", __func__);
+
     gameDataContext->isGameOver = false;
 
-    memset(gameDataContext->arena, 0,
-        sizeof(gameDataContext->arena[0][0]) * ARENA_HEIGHT * ARENA_WIDTH);
+    SDL_LogVerbose(SDL_LOG_CATEGORY_APPLICATION, "Initialising arena to zero...");
+    memset(gameDataContext->arena, 0,sizeof(gameDataContext->arena[0][0]) * ARENA_HEIGHT * ARENA_WIDTH);
 
     gameDataContext->score = 0;
     gameDataContext->level = 1;
@@ -31,6 +37,7 @@ bool GAME_Reset(GameDataContext* gameDataContext)
     InitTetrominoBag(&gameDataContext->tetrominoBag);
 
     if (gameDataContext->droppingTetromino == NULL) {
+        SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Dropping tetromino does not exist, so allocating memory for it...");
         gameDataContext->droppingTetromino = SDL_calloc(1, sizeof(DroppingTetromino));
         if (!gameDataContext->droppingTetromino) return false;
     }
@@ -46,18 +53,24 @@ bool GAME_Reset(GameDataContext* gameDataContext)
 
 void GAME_TogglePause(void* data)
 {
+    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Calling %s...", __func__);
+
     GameDataContext* gameDataContext = (GameDataContext*)data;
     gameDataContext->isPaused = !gameDataContext->isPaused;
 }
 
 void GAME_Quit(void* data)
 {
+    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Calling %s...", __func__);
+
     GameDataContext* gameDataContext = (GameDataContext*)data;
     gameDataContext->isRunning = false;
 }
 
 void GAME_Iteration(GameDataContext* gameDataContext)
 {
+    SDL_LogVerbose(SDL_LOG_CATEGORY_APPLICATION, "Calling %s...", __func__);
+
     if (gameDataContext->isPaused || gameDataContext->isGameOver) return;
 
     // The time (in milliseconds) to drop a tetromino one cell (i.e. speed) for each of the tetris levels
@@ -67,20 +80,23 @@ void GAME_Iteration(GameDataContext* gameDataContext)
     static int levelLinesCleared = 0;
     levelLinesCleared += ClearLines(gameDataContext);
 
-    // Check dropping tetromino is marked for termination and has passed Lock Down (See https://tetris.wiki/Tetris_Guideline#LockDown)
+    // Check dropping tetromino is marked for termination (See https://tetris.wiki/Tetris_Guideline#LockDown)
     if (gameDataContext->droppingTetromino->terminationTick)
     {
         // Lock down time (in milliseconds) - how long the player should have to move a tetromino around on the board once
         // it has made contact with the ground
         const int lockDownTime = 500;
+        SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Initiate tetromino lockdown...");
 
         // If the tetromino is in Lock Down, but moves to a position where it can drop, then we cancel the Lock Down
         if (!WillDroppingTetrominoCollide(gameDataContext, 0, 1, 0))
         {
+            SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Cancel tetromino lockdown...");
             gameDataContext->droppingTetromino->terminationTick = 0;
         }
         else if (SDL_GetTicks() > (gameDataContext->droppingTetromino->terminationTick + lockDownTime))
         {
+            SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Lockdown ended after %d ticks!", (int)(SDL_GetTicks() - gameDataContext->droppingTetromino->terminationTick));
             ResetDroppingTetromino(gameDataContext);
         }
     }
@@ -88,25 +104,34 @@ void GAME_Iteration(GameDataContext* gameDataContext)
     // Based on gravity, every n-ticks, drop tetromino and run tetromino operations
     static Uint64 oldTick = 0;
     if (SDL_GetTicks() - oldTick >= gravityValues[gameDataContext->level - 1])
-    {
+    {SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Cancel tetromino lockdown...");
         if (levelLinesCleared >= 10)
         {
             levelLinesCleared = 0;
-            if (gameDataContext->level - 1 < MAX_LEVEL) gameDataContext->level++;
+            if (gameDataContext->level - 1 < MAX_LEVEL)
+            {
+                SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Increasing level (%d->%d)...", gameDataContext->level, gameDataContext->level + 1);
+                gameDataContext->level++;
+            }
+            else
+            {
+                SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Max level reached!");
+            }
         }
-
+        SDL_LogVerbose(SDL_LOG_CATEGORY_APPLICATION, "Dropping tetromino at tick=%d", (int)SDL_GetTicks());
         SoftDropTetromino(gameDataContext);
 
         oldTick = SDL_GetTicks();
     }
 }
 
-bool WillDroppingTetrominoCollide(const GameDataContext* gameDataContext,
-    int translationX,
-    int translationY,
-    const int rotationAmount)
+bool WillDroppingTetrominoCollide(const GameDataContext* gameDataContext, int translationX, int translationY, const int rotationAmount)
 {
-    const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = gameDataContext->droppingTetromino->shape->coordinates[((gameDataContext->droppingTetromino->orientation + rotationAmount) % 4 + 4) % 4];
+    SDL_LogVerbose(SDL_LOG_CATEGORY_APPLICATION, "Calling %s...", __func__);
+
+    // DEV NOTE: & 3 Does the same as wrapping 0-3, but makes for cleaner code as rotationAmount can be negative
+// and in C, you can't easily use modulus to wrap negatives. This trick only works when % is a power of two.
+    const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = gameDataContext->droppingTetromino->shape->coordinates[((gameDataContext->droppingTetromino->orientation + rotationAmount) & 3)];
 
     translationX += gameDataContext->droppingTetromino->x;
     translationY += gameDataContext->droppingTetromino->y;
@@ -121,10 +146,18 @@ bool WillDroppingTetrominoCollide(const GameDataContext* gameDataContext,
             const int offsetY = translationY + i;
 
             // Check if the tetromino has collided with the arena
-            if (offsetX >= ARENA_WIDTH || offsetX < 0 || offsetY >= ARENA_HEIGHT || offsetY < 0) return true;
+            if (offsetX >= ARENA_WIDTH || offsetX < 0 || offsetY >= ARENA_HEIGHT || offsetY < 0)
+            {
+                SDL_LogVerbose(SDL_LOG_CATEGORY_APPLICATION, "Dropping tetromino would collide with arena bounds!");
+                return true;
+            }
 
             // Check if the tetromino has collided with another tetromino on the board
-            if (gameDataContext->arena[offsetY][offsetX] != 0) return true;
+            if (gameDataContext->arena[offsetY][offsetX] != 0)
+            {
+                SDL_LogVerbose(SDL_LOG_CATEGORY_APPLICATION, "Dropping tetromino would collide tetromino stack!");
+                return true;
+            }
         }
     }
 
@@ -133,6 +166,8 @@ bool WillDroppingTetrominoCollide(const GameDataContext* gameDataContext,
 
 void ResetDroppingTetromino(GameDataContext* gameDataContext)
 {
+    SDL_LogVerbose(SDL_LOG_CATEGORY_APPLICATION, "Calling %s...", __func__);
+
     const int droppingTetrominoX = gameDataContext->droppingTetromino->x;
     const int droppingTetrominoY = gameDataContext->droppingTetromino->y;
     const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = gameDataContext->droppingTetromino->shape->coordinates[gameDataContext->droppingTetromino->orientation];
@@ -143,6 +178,7 @@ void ResetDroppingTetromino(GameDataContext* gameDataContext)
         for (int j = 0; j < TETROMINO_MAX_SIZE; j++)
         {
             if (!droppingTetrominoRotatedCoordinates[i][j]) continue;
+            SDL_LogTrace(SDL_LOG_CATEGORY_APPLICATION, "Setting arena[%d][%d] to Tetromino with ID %d", droppingTetrominoY + i, droppingTetrominoX + j, gameDataContext->droppingTetromino->shape->identifier);
             gameDataContext->arena[droppingTetrominoY + i][droppingTetrominoX + j] = gameDataContext->droppingTetromino->shape->identifier;
         }
     }
@@ -155,12 +191,15 @@ void ResetDroppingTetromino(GameDataContext* gameDataContext)
 
     if (WillDroppingTetrominoCollide(gameDataContext, 0, 0, 0))
     {
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Dropping tetromino has collided instantly upon spawning, indicating a game loss state!");
         gameDataContext->isGameOver = true;
     }
 }
 
 static void DropRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], const int dropToRow, const int dropAmount)
 {
+    SDL_LogVerbose(SDL_LOG_CATEGORY_APPLICATION, "Calling %s...", __func__);
+
     // Start scanning for filled rows upwards from dropToRow
     for (int row = dropToRow; row >= 0; row--)
     {
@@ -186,6 +225,8 @@ static void DropRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], const
 
 int ClearLines(GameDataContext* gameDataContext)
 {
+    SDL_LogVerbose(SDL_LOG_CATEGORY_APPLICATION, "Calling %s...", __func__);
+
     // Number of sequential rows that have been filled
     int numFilledRows = 0;
 
@@ -264,6 +305,8 @@ int ClearLines(GameDataContext* gameDataContext)
 
 bool WallKickDroppingTetromino(GameDataContext* gameDataContext, const int rotationDirection)
 {
+    SDL_LogVerbose(SDL_LOG_CATEGORY_APPLICATION, "Calling %s...", __func__);
+
     if (gameDataContext->isPaused || gameDataContext->isGameOver) return true;
 
     // 2D array of coordinate pairs (3D) representing the Wall Kick Data (see https://tetris.wiki/Super_Rotation_System).
@@ -343,6 +386,8 @@ bool WallKickDroppingTetromino(GameDataContext* gameDataContext, const int rotat
 
 void HardDropTetromino(GameDataContext* gameDataContext)
 {
+    SDL_LogVerbose(SDL_LOG_CATEGORY_APPLICATION, "Calling %s...", __func__);
+
     if (gameDataContext->isPaused || gameDataContext->isGameOver) return;
     while (!WillDroppingTetrominoCollide(gameDataContext, 0, 1, 0))
     {
@@ -355,6 +400,8 @@ void HardDropTetromino(GameDataContext* gameDataContext)
 
 void SoftDropTetromino(GameDataContext* gameDataContext)
 {
+    SDL_LogVerbose(SDL_LOG_CATEGORY_APPLICATION, "Calling %s...", __func__);
+
     if (gameDataContext->isPaused || gameDataContext->isGameOver) return;
     if (WillDroppingTetrominoCollide(gameDataContext, 0, 1, 0))
     {
@@ -369,6 +416,8 @@ void SoftDropTetromino(GameDataContext* gameDataContext)
 
 void ShiftTetromino(GameDataContext* gameDataContext, const int translation)
 {
+    SDL_LogVerbose(SDL_LOG_CATEGORY_APPLICATION, "Calling %s...", __func__);
+
     if (gameDataContext->isPaused || gameDataContext->isGameOver) return;
     if (!WillDroppingTetrominoCollide(gameDataContext, translation, 0, 0)) gameDataContext->droppingTetromino->x += translation;
 }

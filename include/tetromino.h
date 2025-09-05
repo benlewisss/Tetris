@@ -78,7 +78,7 @@ typedef struct DroppingTetromino
     const TetrominoShape* shape;
 
     /** @brief The tick at which the dropping tetromino was marked for termination. **/
-    Uint64 terminationTick; // 
+    Uint64 terminationTick;
 
     // TODO Possibly implement tracker for number of moves, so we can limit the number of rotations to 15 before
     // it hard locks, preventing infinite spin (see wiki)
@@ -116,7 +116,7 @@ const TetrominoShape* NextTetrominoFromBag(TetrominoBag* bag);
  * the shape textures
  *
  * @param identifier
- * @return A tetromino shape object.
+ * @return A TetrominoShape object.
  */
 TetrominoShape* GetTetrominoShapeByIdentifier(TetrominoIdentifier identifier);
 

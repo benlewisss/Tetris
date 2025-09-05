@@ -5,6 +5,8 @@
 
 TetrominoShape* GetTetrominoShapeByIdentifier(const TetrominoIdentifier identifier)
 {
+    SDL_LogVerbose(SDL_LOG_CATEGORY_APPLICATION, "Calling %s...", __func__);
+
     // Tetromino shape and color declarations
     static TetrominoShape pieceI =
     {
@@ -233,6 +235,7 @@ TetrominoShape* GetTetrominoShapeByIdentifier(const TetrominoIdentifier identifi
 
     if (identifier <= 0 || (int)identifier > TETROMINO_COUNT)
     {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Attempted to retrieve invalid tetromino outside of range with ID=%d!", identifier);
         return NULL;
     }
 
@@ -243,16 +246,22 @@ TetrominoShape* GetTetrominoShapeByIdentifier(const TetrominoIdentifier identifi
 
 void InitTetrominoBag(TetrominoBag* bag)
 {
+    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Calling %s...", __func__);
+
     bag->dropCount = 0;
     for (int i = 0; i < TETROMINO_COUNT; i++) {
         bag->bag[i] = (TetrominoIdentifier)(i + 1);
     }
+    SDL_LogTrace(SDL_LOG_CATEGORY_APPLICATION, "Shuffling bag");
     Shuffle(bag->bag, TETROMINO_COUNT);
 }
 
 const TetrominoShape* NextTetrominoFromBag(TetrominoBag* bag)
 {
+    SDL_LogVerbose(SDL_LOG_CATEGORY_APPLICATION, "Calling %s...", __func__);
+
     if (bag->dropCount >= TETROMINO_COUNT) {
+        SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Reached end of tetromino bag, regenerating bag...");
         InitTetrominoBag(bag); // reshuffle
     }
 
@@ -264,13 +273,17 @@ const TetrominoShape* NextTetrominoFromBag(TetrominoBag* bag)
 
 void RotateDroppingTetromino(DroppingTetromino* droppingTetromino, const int rotationAmount)
 {
-    // NOTE: & 3 Does the same as wrapping 0-3, but makes for cleaner code as rotationAmount can be negative
+    SDL_LogVerbose(SDL_LOG_CATEGORY_APPLICATION, "Calling %s...", __func__);
+
+    // DEV NOTE: & 3 Does the same as wrapping 0-3, but makes for cleaner code as rotationAmount can be negative
     // and in C, you can't easily use modulus to wrap negatives. This trick only works when % is a power of two.
     droppingTetromino->orientation = (droppingTetromino->orientation + rotationAmount) & 3;
 }
 
 void Shuffle(int* array, const size_t n)
 {
+    SDL_LogVerbose(SDL_LOG_CATEGORY_APPLICATION, "Calling %s...", __func__);
+
     // Fisher-Yates Shuffle
     if (n > 1)
     {

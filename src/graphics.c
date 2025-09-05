@@ -11,8 +11,7 @@
 
 bool GFX_Init(GraphicsDataContext* graphicsDataContext, GameDataContext* gameDataContext, Fonts* fonts)
 {
-    SDL_LogVerbose(SDL_LOG_CATEGORY_RENDER, "Calling %s...", __func__);
-    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Initialising Tetris graphics...");
+    SDL_LogInfo(SDL_LOG_CATEGORY_RENDER, "Calling %s...", __func__);
 
     // Load fonts
     SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Loading fonts...");
