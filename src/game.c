@@ -130,7 +130,7 @@ bool WillDroppingTetrominoCollide(const GameDataContext* gameDataContext, int tr
     SDL_LogVerbose(SDL_LOG_CATEGORY_APPLICATION, "Calling %s...", __func__);
 
     // DEV NOTE: & 3 Does the same as wrapping 0-3, but makes for cleaner code as rotationAmount can be negative
-// and in C, you can't easily use modulus to wrap negatives. This trick only works when % is a power of two.
+    // and in C, you can't easily use modulus to wrap negatives. This trick only works when % is a power of two.
     const bool (*droppingTetrominoRotatedCoordinates)[TETROMINO_MAX_SIZE] = gameDataContext->droppingTetromino->shape->coordinates[((gameDataContext->droppingTetromino->orientation + rotationAmount) & 3)];
 
     translationX += gameDataContext->droppingTetromino->x;
@@ -207,6 +207,7 @@ static void DropRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], const
         // them (as there are none).
         if (row - dropAmount < 0)
         {
+            SDL_LogVerbose(SDL_LOG_CATEGORY_APPLICATION, "Setting row %d to zero!", row);
             memset(arena[row], 0, ARENA_WIDTH * sizeof(arena[0][0]));
             continue;
         }
@@ -219,7 +220,11 @@ static void DropRows(TetrominoIdentifier arena[ARENA_HEIGHT][ARENA_WIDTH], const
         }
 
         // If we reach an empty row, then nothing above it to drop down
-        if (squareCount == 0) break;
+        if (squareCount == 0)
+        {
+            SDL_LogVerbose(SDL_LOG_CATEGORY_APPLICATION, "Reached empty row (%d), exiting...", row);
+            break;
+        }
     }
 }
 
@@ -278,7 +283,7 @@ int ClearLines(GameDataContext* gameDataContext)
     if (bottomPointer == 0) return 0;
 
     // Clear the cleared rows and drop the rows above
-    SDL_Log("Dropping Rows - Drop to: %d, Drop by: %d", bottomPointer, numFilledRows);
+    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Dropping Rows - Drop to: %d, Drop by: %d", bottomPointer, numFilledRows);
     DropRows(gameDataContext->arena, bottomPointer, numFilledRows);
 
     // Scoring for different levels
@@ -286,15 +291,19 @@ int ClearLines(GameDataContext* gameDataContext)
     {
     case 1:
         gameDataContext->score += 100 * (gameDataContext->level);
+        SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Adding %d to score...", 100 * gameDataContext->level);
         break;
     case 2:
         gameDataContext->score += 300 * (gameDataContext->level);
+        SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Adding %d to score...", 300 * gameDataContext->level);
         break;
     case 3:
         gameDataContext->score += 500 * (gameDataContext->level);
+        SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Adding %d to score...", 500 * gameDataContext->level);
         break;
     case 4:
         gameDataContext->score += 800 * (gameDataContext->level);
+        SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Adding %d to score...", 800 * gameDataContext->level);
         break;
     default:
         break;

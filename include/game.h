@@ -114,9 +114,7 @@ void GAME_Iteration(GameDataContext* gameDataContext);
  *
  * @return True if the tetromino would collide, false otherwise.
  */
-bool WillDroppingTetrominoCollide(GameDataContext* gameDataContext,
-                                     int translationX, int translationY,
-                                     int rotationAmount);
+bool WillDroppingTetrominoCollide(GameDataContext* gameDataContext, int translationX, int translationY, int rotationAmount);
 
 
 /**

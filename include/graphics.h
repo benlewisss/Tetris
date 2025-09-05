@@ -121,8 +121,8 @@ typedef struct GraphicsDataContext
 
     /** @brief A pointer to a sidebar UI struct. */
     SidebarUI* sidebarUI;
-} GraphicsDataContext;
 
+} GraphicsDataContext;
 
 /**
  * @brief Initialises the graphicsData values.
