@@ -4,6 +4,12 @@ A modern Tetris clone written in **C** using **SDL3**, fully conforming to the o
 
 This README serves both as a **usage guide** and a **code walkthrough** for anyone learning SDL.
 
+## DEMO
+
+![Tetris Gameplay](resources/demo/demo.gif)
+
+*(This GIF is sped up to 150% speed)**
+
 ---
 
 ## 1. Building the project
