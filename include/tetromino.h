@@ -77,7 +77,7 @@ typedef struct DroppingTetromino
     /** @brief A pointer to the tetromino shape object that contains details unique to each tetromino. **/
     const TetrominoShape* shape;
 
-    /** @brief The tick at which the dropping tetromino was marked for termination. **/
+    /** @brief The tick at which the dropping tetromino was marked for termination, or 0 if not marked for termination.**/
     Uint64 terminationTick;
 
     // TODO Possibly implement tracker for number of moves, so we can limit the number of rotations to 15 before

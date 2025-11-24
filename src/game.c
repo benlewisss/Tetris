@@ -86,7 +86,7 @@ void GAME_Iteration(GameDataContext* gameDataContext)
         // Lock down time (in milliseconds) - how long the player should have to move a tetromino around on the board once
         // it has made contact with the ground
         const int lockDownTime = 500;
-        SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Initiate tetromino lockdown...");
+        SDL_LogTrace(SDL_LOG_CATEGORY_APPLICATION, "Check tetromino lockdown...");
 
         // If the tetromino is in Lock Down, but moves to a position where it can drop, then we cancel the Lock Down
         if (!WillDroppingTetrominoCollide(gameDataContext, 0, 1, 0))
