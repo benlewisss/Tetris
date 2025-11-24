@@ -6,9 +6,9 @@ This README serves both as a **usage guide** and a **code walkthrough** for anyo
 
 ## DEMO
 
-![Tetris Gameplay](resources/demo/demo.gif)
+![Tetris Gameplay](./resources/demo/demo.gif)
 
-*(This GIF is sped up to 150% speed)**
+*(This GIF is sped up to 150% speed)*
 
 ---
 
